@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "id": "web",
+    "name": "World English Bible",
+    "language": "English",
+    "license": "Public Domain"
+  },
+  "books": {
+    "Genesis": {
+      "1": [
+        "In the beginning, God created the heavens and the earth.",
+        "The earth was formless and empty. Darkness was on the surface of the deep. God's Spirit was hovering over the surface of the waters.",
+        "God said, \"Let there be light,\" and there was light."
+      ]
+    }
+  }
+}
+
+

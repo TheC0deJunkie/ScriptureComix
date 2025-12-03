@@ -1,0 +1,160 @@
+[
+  {
+    "id": "kjv",
+    "displayName": "King James Version",
+    "language": "English",
+    "license": "Public Domain",
+    "status": "local",
+    "description": "1769 Oxford standard text. Suitable for all protestant canon readings.",
+    "versions": ["KJV"],
+    "books": ["*"],
+    "file": "kjv.json",
+    "groups": ["Hebrew Bible", "New Testament"],
+    "updatedAt": "2025-01-01T00:00:00Z"
+  },
+  {
+    "id": "web",
+    "displayName": "World English Bible",
+    "language": "English",
+    "license": "Public Domain",
+    "status": "local",
+    "description": "Modern-language update of the ASV; public-domain and safe for reuse.",
+    "versions": [],
+    "books": ["*"],
+    "file": "web.json",
+    "groups": ["Hebrew Bible", "New Testament"],
+    "updatedAt": "2025-01-01T00:00:00Z"
+  },
+  {
+    "id": "enoch-charles",
+    "displayName": "Book of Enoch (R.H. Charles, 1912)",
+    "language": "English",
+    "license": "Public Domain",
+    "status": "local",
+    "description": "Classic translation of 1 Enoch used by many academic references.",
+    "books": ["Book of Enoch (1 Enoch)"],
+    "file": "enoch.json",
+    "groups": ["Ethiopian Canon", "Pseudepigrapha"],
+    "updatedAt": "2025-01-01T00:00:00Z"
+  },
+  {
+    "id": "niv",
+    "displayName": "New International Version",
+    "language": "English",
+    "license": "Zondervan ©",
+    "status": "licensed",
+    "description": "Requires publisher agreement for redistribution. Use partners/API until license secured.",
+    "versions": ["NIV"],
+    "books": ["*"],
+    "notes": "Fallback to external API until local text ingested."
+  },
+  {
+    "id": "msg",
+    "displayName": "The Message",
+    "language": "English",
+    "license": "NavPress ©",
+    "status": "licensed",
+    "versions": ["The Message"],
+    "books": ["*"],
+    "notes": "Register with NavPress for redistribution rights."
+  },
+  {
+    "id": "esv",
+    "displayName": "English Standard Version",
+    "language": "English",
+    "license": "Crossway ©",
+    "status": "licensed",
+    "versions": ["ESV"],
+    "books": ["*"],
+    "notes": "Available via Crossway API; add local text once permit signed."
+  },
+  {
+    "id": "nlt",
+    "displayName": "New Living Translation",
+    "language": "English",
+    "license": "Tyndale ©",
+    "status": "licensed",
+    "versions": ["NLT"],
+    "books": ["*"],
+    "notes": "Requires Tyndale permission; currently external-only."
+  },
+  {
+    "id": "nkjv",
+    "displayName": "New King James Version",
+    "language": "English",
+    "license": "Thomas Nelson ©",
+    "status": "licensed",
+    "versions": ["NKJV"],
+    "books": ["*"],
+    "notes": "Available after license; using fallback until imported."
+  },
+  {
+    "id": "nasb",
+    "displayName": "New American Standard Bible",
+    "language": "English",
+    "license": "Lockman Foundation ©",
+    "status": "licensed",
+    "versions": ["NASB"],
+    "books": ["*"]
+  },
+  {
+    "id": "rsv",
+    "displayName": "Revised Standard Version",
+    "language": "English",
+    "license": "NCC ©",
+    "status": "licensed",
+    "versions": ["RSV"],
+    "books": ["*"]
+  },
+  {
+    "id": "geneva",
+    "displayName": "Geneva Bible (1599)",
+    "language": "English",
+    "license": "Public Domain",
+    "status": "external",
+    "versions": ["Geneva Bible"],
+    "books": ["*"],
+    "notes": "Public domain text available; import pending."
+  },
+  {
+    "id": "septuagint",
+    "displayName": "Septuagint (LXX)",
+    "language": "Greek",
+    "license": "Public Domain",
+    "status": "external",
+    "versions": ["Septuagint (LXX)"],
+    "books": ["*"],
+    "notes": "Needs Greek text ingestion."
+  },
+  {
+    "id": "vulgate",
+    "displayName": "Latin Vulgate",
+    "language": "Latin",
+    "license": "Public Domain",
+    "status": "external",
+    "versions": ["Latin Vulgate"],
+    "books": ["*"]
+  },
+  {
+    "id": "quran",
+    "displayName": "Qur'an (Sahih International)",
+    "language": "English",
+    "license": "licensed",
+    "status": "licensed",
+    "versions": ["Sahih International (Quran)"],
+    "books": ["Quran (Surah 1-114)"],
+    "notes": "Use licensed text or public-domain translation for local copy."
+  },
+  {
+    "id": "lds",
+    "displayName": "LDS Standard Works",
+    "language": "English",
+    "license": "Intellectual Reserve ©",
+    "status": "licensed",
+    "versions": ["LDS Standard Works"],
+    "books": ["*"],
+    "notes": "Need permission from LDS Distribution to host locally."
+  }
+]
+
+

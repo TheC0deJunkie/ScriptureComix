@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "id": "kjv",
+    "name": "King James Version",
+    "language": "English",
+    "license": "Public Domain"
+  },
+  "books": {
+    "Genesis": {
+      "1": [
+        "In the beginning God created the heaven and the earth.",
+        "And the earth was without form, and void; and darkness was upon the face of the deep. And the Spirit of God moved upon the face of the waters.",
+        "And God said, Let there be light: and there was light."
+      ],
+      "2": [
+        "Thus the heavens and the earth were finished, and all the host of them."
+      ]
+    },
+    "Exodus": {
+      "1": [
+        "Now these are the names of the children of Israel, which came into Egypt; every man and his household came with Jacob."
+      ]
+    }
+  }
+}
+
+
