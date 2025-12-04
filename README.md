@@ -1,20 +1,39 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# ScriptureComix 
 
-# Run and deploy your AI Studio app
+**Interactive / Visual Bible Adventures**
 
-This contains everything you need to run your app locally.
+This is a personal project I’m building for anyone who — like me — loves the Bible but struggles with traditional text-only reading.  
+My aim: make reading, understanding and studying God’s Word easier and more engaging by presenting Scripture in *visual, contextual and interactive format*.  
 
-View your app in AI Studio: https://ai.studio/apps/drive/1pZfv0C6-lMrCWcFDf56FUd8P2KASj8mv
+---
 
-## Run Locally
+## 🚀 What it does
 
-**Prerequisites:**  Node.js
+- Turns Bible chapters into comic-style panels with images + text bubbles  
+- Provides AI-powered explainers and contextual notes (summaries, historical/cultural background, deeper meaning)  
+- Supports multiple translations, versions, and even “lost books” / alternate canons for user choice  
+- Offers a mix of free content and optional premium (paywall) features — while avoiding intrusive ads  
+- Allows users to read, study, and interact — regardless of age or background  
 
+---
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## 💡 Project status
+
+- **Work in progress** — this is a bootstrapped, personal initiative.  
+- All core features are being built and refined; many advanced features still under development.  
+- Hosting, AI-model usage, and image generation are currently funded through community support and donations.  
+
+---
+
+## 📂 How to run locally (for developers)
+
+```bash
+# Clone the repo
+git clone https://github.com/TheC0deJunkie/ScriptureComix.git
+cd ScriptureComix
+
+# Install dependencies
+npm install
+
+# Start development server (Vite)
+npm run dev
