@@ -251,60 +251,31 @@ export const FREE_STYLES = [ArtStyle.COMIC_MODERN];
 export const EXPLORER_STYLES = [ArtStyle.COMIC_MODERN, ArtStyle.COMIC_RETRO, ArtStyle.WATERCOLOR];
 
 // --- BOOK COLLECTIONS STRUCTURE ---
+// --- BOOK COLLECTIONS STRUCTURE ---
 
+// Use the canonical Protestant Bible book list as the primary source for the app UI.
+// These are the 66 books commonly present across the translation JSONs in
+// the `bible-translations-master` dataset (OT + NT). We intentionally avoid
+// showing the various alternative canons (Tanakh groupings, Deuterocanonical,
+// later-day saint, or Quran) in the main Book selector per product request.
 export const BOOK_COLLECTIONS = {
-  "Jewish Tanakh (Hebrew Bible)": [
-    "Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy",
-    "Joshua", "Judges", "1 Samuel", "2 Samuel", "1 Kings", "2 Kings",
-    "Isaiah", "Jeremiah", "Ezekiel", "Hosea", "Joel", "Amos", "Obadiah", "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah", "Malachi",
-    "Psalms", "Proverbs", "Job", "Song of Songs", "Ruth", "Lamentations", "Ecclesiastes", "Esther", "Daniel", "Ezra", "Nehemiah", "1 Chronicles", "2 Chronicles"
+  "Old Testament": [
+    "Genesis","Exodus","Leviticus","Numbers","Deuteronomy",
+    "Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings",
+    "1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs",
+    "Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel",
+    "Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi"
   ],
   "New Testament": [
-    "Matthew", "Mark", "Luke", "John", "Acts",
-    "Romans", "1 Corinthians", "2 Corinthians", "Galatians", "Ephesians", "Philippians", "Colossians", 
-    "1 Thessalonians", "2 Thessalonians", "1 Timothy", "2 Timothy", "Titus", "Philemon", 
-    "Hebrews", "James", "1 Peter", "2 Peter", "1 John", "2 John", "3 John", "Jude", "Revelation"
-  ],
-  "Deuterocanonical (Catholic/Orthodox)": [
-    "Tobit", "Judith", "1 Maccabees", "2 Maccabees", 
-    "Wisdom of Solomon", "Sirach", "Baruch", "Letter of Jeremiah",
-    "Additions to Daniel", "Additions to Esther"
-  ],
-  "Ethiopian Orthodox Canon": [
-    "Book of Enoch (1 Enoch)", "Book of Jubilees", "1 Meqabyan", "2 Meqabyan", "3 Meqabyan"
-  ],
-  "Latter-day Saints (Mormon)": [
-    "1 Nephi", "2 Nephi", "Jacob", "Enos", "Jarom", "Omni", "Words of Mormon",
-    "Mosiah", "Alma", "Helaman", "3 Nephi", "4 Nephi", "Mormon", "Ether", "Moroni",
-    "Doctrine and Covenants", "Pearl of Great Price"
-  ],
-  "Gnostic & Nag Hammadi": [
-    "Gospel of Thomas", "Gospel of Philip", "Gospel of Mary", "Gospel of Truth", "Apocryphon of John"
-  ],
-  "Apocrypha & Pseudepigrapha": [
-    "Book of Jasher", "Shepherd of Hermas", "Apocalypse of Peter",
-    "3 Maccabees", "4 Maccabees", "Odes of Solomon", "Ascension of Isaiah",
-    "Assumption of Moses", "Psalm 151"
-  ],
-  "Islamic Texts": [
-    "Quran (Surah 1-114)"
+    "Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians",
+    "Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians",
+    "1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter",
+    "1 John","2 John","3 John","Jude","Revelation"
   ]
 };
 
 // Flattened list
 export const BIBLE_BOOKS = Array.from(new Set(Object.values(BOOK_COLLECTIONS).flat()));
 
-// Specific books allowed in Free Tier (besides Standard Bible)
-export const FREE_ALLOWED_BOOKS = [
-  ...BOOK_COLLECTIONS["Jewish Tanakh (Hebrew Bible)"],
-  ...BOOK_COLLECTIONS["New Testament"],
-  "Book of Enoch (1 Enoch)",
-  "Book of Jubilees",
-  "Book of Jasher",
-  "Gospel of Philip", 
-  "Gospel of Mary",
-  "Quran (Surah 1-114)",
-  "1 Nephi", // Mormon basic
-  "Tobit",   // Catholic basic
-  "Judith"   // Catholic basic
-];
+// Free tier allowed books: for now allow the entire standard Bible to be browsed locally.
+export const FREE_ALLOWED_BOOKS = [...BIBLE_BOOKS];

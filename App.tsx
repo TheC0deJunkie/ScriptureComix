@@ -26,7 +26,7 @@ import {
   JourneyProgress, StudyGroup, CustomHero, OfflinePack, CachedChapter, ChapterVerse, TextCatalogEntry, ReaderProfile
 } from './types';
 import { getCacheKey, loadCachedChapter, saveCachedChapter } from './services/cacheService';
-import { loadChapterText, loadTextCatalog } from './services/textLibrary';
+import { loadChapterText, loadTextCatalog, discoverScriptures, loadScriptureData, extractVersesFromScripture, ScriptureEntry } from './services/textLibrary';
 
 const DEFAULT_STATS: UserStats = {
   streak: 0,
@@ -71,7 +71,9 @@ const App: React.FC = () => {
   // Reading State
   const [selectedBook, setSelectedBook] = useState('Genesis');
   const [selectedChapter, setSelectedChapter] = useState(1);
-  const [version, setVersion] = useState<BibleVersion>(BibleVersion.NIV);
+  // `version` can be a builtin `BibleVersion` or a discovered scripture id string
+  // in the form `SCRIPTURE::<id>`.
+  const [version, setVersion] = useState<string | BibleVersion>(BibleVersion.NIV);
   const [artStyle, setArtStyle] = useState<ArtStyle>(ArtStyle.COMIC_MODERN);
   const [language, setLanguage] = useState("English");
   
@@ -146,6 +148,11 @@ const App: React.FC = () => {
   // UI Overlays
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [localVersionSet, setLocalVersionSet] = useState<Set<BibleVersion>>(new Set());
+  
+  // Scripture Discovery & Selection
+  const [scriptureEntries, setScriptureEntries] = useState<ScriptureEntry[]>([]);
+  const [selectedScripture, setSelectedScripture] = useState<ScriptureEntry | null>(null);
+  const [scriptureData, setScriptureData] = useState<any>(null);
 
   // --- INIT & PERSISTENCE ---
   useEffect(() => {
@@ -303,7 +310,35 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // Discover all available scripture sources (Bible, Quran, Deuterocanonical)
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const entries = await discoverScriptures();
+        if (cancelled) return;
+        setScriptureEntries(entries);
+      } catch (err) {
+        console.warn('Failed to discover scriptures:', err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    // If the current selection is a discovered SCRIPTURE entry (stored as a
+    // 'SCRIPTURE::id' string in `version`), don't force a fallback to a builtin
+    // version when the localVersionSet changes. Only enforce fallback for
+    // builtin BibleVersion values.
+    try {
+      const verStr = (version as unknown as string) || '';
+      if (typeof verStr === 'string' && verStr.startsWith('SCRIPTURE::')) {
+        return;
+      }
+    } catch {
+      // ignore and continue to fallback enforcement
+    }
+
     if (localVersionSet.size > 0 && !localVersionSet.has(version)) {
       const fallback = findFallbackVersion(localVersionSet);
       if (version !== fallback) {
@@ -321,7 +356,48 @@ const App: React.FC = () => {
     let cancelled = false;
     setIsChapterTextLoading(true);
     setChapterTextError(null);
-    loadChapterText(version, selectedBook, selectedChapter)
+
+    // If a scripture is selected, prefer loading from it
+    if (selectedScripture && scriptureData) {
+      // For Quran datasets, the 'book' selection will be the surah number.
+      let queryBook = selectedBook;
+      let queryChapter = selectedChapter;
+      if (selectedScripture.group === 'Quran') {
+        const num = Number(selectedBook);
+        if (!Number.isNaN(num) && num > 0) {
+          queryChapter = num;
+          queryBook = String(num);
+        }
+      }
+      const verses = extractVersesFromScripture(scriptureData, queryBook, queryChapter);
+      if (cancelled) return;
+      if (verses) {
+        setChapterText(verses);
+        setChapterTextSource({
+          id: selectedScripture.id,
+          displayName: selectedScripture.displayName,
+          language: 'Unknown',
+          license: 'Bundled',
+          status: 'local',
+        } as TextCatalogEntry);
+        setChapterTextError(null);
+      } else {
+        setChapterText(null);
+        setChapterTextSource(null);
+        setChapterTextError(`Chapter not found in ${selectedScripture.displayName}`);
+      }
+      setIsChapterTextLoading(false);
+      return () => { cancelled = true; };
+    }
+
+    // Otherwise, load from standard version
+    // If `version` is a discovered SCRIPTURE:: id, fall back to a builtin version
+    // for the loadChapterText path (we only reach this when selectedScripture is not set).
+    const effectiveVersion = (typeof version === 'string' && version.startsWith('SCRIPTURE::'))
+      ? findFallbackVersion(localVersionSet)
+      : (version as BibleVersion);
+
+    loadChapterText(effectiveVersion, selectedBook, selectedChapter)
       .then(result => {
         if (cancelled) return;
         if (result) {
@@ -347,7 +423,7 @@ const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [selectedBook, selectedChapter, version]);
+  }, [selectedBook, selectedChapter, version, selectedScripture, scriptureData]);
 
   // --- MONETIZATION HANDLERS ---
   const handleDonation = (amount: number, isMonthly: boolean) => {
@@ -766,7 +842,33 @@ const App: React.FC = () => {
   };
 
   const handleVersionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const v = e.target.value as BibleVersion;
+    const raw = e.target.value as string;
+    // Special case: discovered scripture entries (non-enum translations)
+    if (raw.startsWith('SCRIPTURE::')) {
+      const id = raw.replace('SCRIPTURE::', '');
+      const entry = scriptureEntries.find(s => s.id === id);
+      if (!entry) return;
+      // Only allow discovered entries that are Bible translations. Ignore Quran/other groups here.
+      if (entry.group !== 'Bible') return;
+      // Check tier gating for discovered scriptures: Free users must upgrade
+      if (stats.tier === UserTier.FREE) {
+        setShowMembershipModal(true);
+        return;
+      }
+  // Load the scripture data and set as active scripture
+  setSelectedScripture(entry);
+  // reflect selection in version state so select shows correct option
+  setVersion(raw as unknown as BibleVersion);
+      loadScriptureData(entry)
+        .then(data => setScriptureData(data))
+        .catch(err => {
+          console.warn('Failed to load scripture data', err);
+          setScriptureData(null);
+        });
+      return;
+    }
+
+    const v = raw as BibleVersion;
     if (!localVersionSet.has(v)) {
       const fallback = findFallbackVersion(localVersionSet);
       if (version !== fallback) {
@@ -776,6 +878,9 @@ const App: React.FC = () => {
     }
     if (checkFeatureLock('version', v)) {
       setVersion(v);
+      // Clear any selected scripture when switching to a standard version
+      setSelectedScripture(null);
+      setScriptureData(null);
     }
   };
 
@@ -790,6 +895,27 @@ const App: React.FC = () => {
     const l = e.target.value;
     if (checkFeatureLock('language', l)) {
       setLanguage(l);
+    }
+  };
+
+  // Handle scripture selection (Bible translation, Quran, Deuterocanonical)
+  const handleScriptureChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const entryId = e.target.value;
+    if (!entryId) {
+      setSelectedScripture(null);
+      setScriptureData(null);
+      return;
+    }
+    const entry = scriptureEntries.find(s => s.id === entryId);
+    if (!entry) return;
+
+    setSelectedScripture(entry);
+    try {
+      const data = await loadScriptureData(entry);
+      setScriptureData(data);
+    } catch (err) {
+      console.warn('Failed to load scripture data:', err);
+      setScriptureData(null);
     }
   };
 
@@ -878,7 +1004,60 @@ const App: React.FC = () => {
     }
 
     try {
-      // Prefer native text when available
+      // If a discovered scripture (Quran/Deuterocanonical) is active, prefer its bundled text
+      if (selectedScripture && scriptureData) {
+        const verses = extractVersesFromScripture(scriptureData, bookToUse, chapterToUse);
+        if (verses && verses.length > 0) {
+          const basePanels: ComicPanelData[] = verses.map((v, index) => ({
+            id: index,
+            narrative: v.text,
+            speechBubbles: [],
+            visualPrompt: `Comic illustration of ${selectedScripture.displayName} ${bookToUse} ${chapterToUse}:${v.verse} - "${v.text}"`,
+            verseReference: `${selectedScripture.displayName} ${bookToUse} ${chapterToUse}:${v.verse}`,
+            isLoadingImage: true,
+          }));
+
+          setComicTitle(`${bookToUse} ${chapterToUse}`);
+          setComicSummary('');
+          setCharacters([]);
+          setLifeApplication('');
+          setPanels(basePanels);
+
+          const generatedPanels = await Promise.all(
+            basePanels.map(async (panel) => {
+              try {
+                const imageUrl = await generatePanelImage(panel.visualPrompt, artStyle);
+                return { ...panel, imageUrl, isLoadingImage: false };
+              } catch {
+                return { ...panel, isLoadingImage: false };
+              }
+            })
+          );
+
+          const payload: CachedChapter = {
+            key: cacheKey,
+            book: bookToUse,
+            chapter: chapterToUse,
+            language,
+            version,
+            artStyle,
+            title: `${selectedScripture.displayName} ${bookToUse} ${chapterToUse}`,
+            summary: '',
+            lifeApplication: '',
+            characters: [],
+            panels: generatedPanels,
+            updatedAt: new Date().toISOString(),
+          };
+
+          applyChapterResult(payload);
+          if (canUseCache) saveCachedChapter(payload);
+          finalizeChapterSession();
+          setIsGeneratingScript(false);
+          return;
+        }
+      }
+
+      // Prefer native text when available (standard Bible versions / library)
       const localText = await loadChapterText(version, bookToUse, chapterToUse);
 
       if (localText && localText.verses.length > 0) {
@@ -898,7 +1077,7 @@ const App: React.FC = () => {
         setLifeApplication('');
         setPanels(basePanels);
 
-        const generatedPanels = await Promise.all(
+        const generatedPanelsLocal = await Promise.all(
           basePanels.map(async (panel) => {
             try {
               const imageUrl = await generatePanelImage(panel.visualPrompt, artStyle);
@@ -909,7 +1088,7 @@ const App: React.FC = () => {
           })
         );
 
-        const payload: CachedChapter = {
+        const payloadLocal: CachedChapter = {
           key: cacheKey,
           book: bookToUse,
           chapter: chapterToUse,
@@ -920,17 +1099,16 @@ const App: React.FC = () => {
           summary: '',
           lifeApplication: '',
           characters: [],
-          panels: generatedPanels,
+          panels: generatedPanelsLocal,
           updatedAt: new Date().toISOString(),
         };
 
-        applyChapterResult(payload);
-        if (canUseCache) {
-          saveCachedChapter(payload);
-        }
+        applyChapterResult(payloadLocal);
+        if (canUseCache) saveCachedChapter(payloadLocal);
         finalizeChapterSession();
         setIsGeneratingScript(false);
         return;
+
       }
 
       // Fallback to AI script only when no local text is available
@@ -1248,17 +1426,17 @@ const App: React.FC = () => {
         <div className="container mx-auto max-w-6xl p-3 flex flex-col xl:flex-row items-center justify-between gap-3">
           <div className="flex flex-wrap items-center justify-center gap-2 w-full xl:w-auto">
              
-             {/* BOOK SELECTOR (GROUPED) */}
+             {/* BOOK SELECTOR (GROUPED) - always use canonical Bible book list from BOOK_COLLECTIONS */}
              <select value={selectedBook} onChange={handleBookChange} className="px-2 py-2 border-2 border-black font-bold focus:bg-yellow-100 rounded bg-gray-50 max-w-[200px]">
-                {Object.entries(BOOK_COLLECTIONS).map(([group, books]) => (
-                   <optgroup key={group} label={group}>
-                      {books.map(b => {
-                        // Logic: Free users can access FREE_ALLOWED_BOOKS. Explorer+ access ALL.
-                        const isLocked = stats.tier === UserTier.FREE && !FREE_ALLOWED_BOOKS.includes(b);
-                        return <option key={b} value={b}>{isLocked ? `🔒 ${b}` : b}</option>
-                      })}
-                   </optgroup>
-                ))}
+               {Object.entries(BOOK_COLLECTIONS).map(([group, books]) => (
+                  <optgroup key={group} label={group}>
+                     {books.map(b => {
+                       // Logic: Free users can access FREE_ALLOWED_BOOKS. Explorer+ access ALL.
+                       const isLocked = stats.tier === UserTier.FREE && !FREE_ALLOWED_BOOKS.includes(b);
+                       return <option key={b} value={b}>{isLocked ? `🔒 ${b}` : b}</option>
+                     })}
+                  </optgroup>
+               ))}
              </select>
 
              <div className="flex items-center border-2 border-black rounded bg-white">
@@ -1268,17 +1446,31 @@ const App: React.FC = () => {
              </div>
               
               {/* VERSION SELECTOR */}
-              <select value={version} onChange={handleVersionChange} className="px-2 py-2 border-2 border-black font-bold bg-gray-50 text-sm rounded max-w-[120px]">
-                 {Object.values(BibleVersion).map(v => {
-                    let locked = false;
-                    if (stats.tier === UserTier.FREE && !FREE_VERSIONS.includes(v)) locked = true;
-                    if (stats.tier === UserTier.EXPLORER && !EXPLORER_VERSIONS.includes(v)) locked = true;
-                    const labelBase = locked ? `🔒 ${v}` : v;
-                    const label = localVersionSet.has(v) ? labelBase : `${labelBase} (not installed)`;
-                    return <option key={v} value={v}>{label}</option>;
-                 })}
-              </select>
+              {/* Versions list is computed per selected book. Books and Versions are separate controls. */}
+              {(() => {
+                // Build groups: Holy Bible (builtin enum + discovered Bible translations), Quran (quran datasets), Deuterocanonical
+                const bookKey = String(selectedBook || '').toLowerCase();
+
+                // Discovered bible translations that contain the selected book
+                const discoveredBible = scriptureEntries
+                  .filter(s => s.group === 'Bible' && s.books && s.books.some(b => b.toLowerCase() === bookKey));
+
+                return (
+                  <select
+                    value={typeof version === 'string' && version.startsWith('SCRIPTURE::') ? version : String(version)}
+                    onChange={handleVersionChange}
+                    className="px-2 py-2 border-2 border-black font-bold bg-gray-50 text-sm rounded max-w-[260px]"
+                  >
+                    <optgroup label="Project Translations">
+                      {discoveredBible.map(s => (
+                        <option key={`SCRIPTURE::${s.id}`} value={`SCRIPTURE::${s.id}`}>{s.displayName}</option>
+                      ))}
+                    </optgroup>
+                  </select>
+                );
+              })()}
               
+
               {/* ART STYLE SELECTOR */}
               <div className="flex items-center gap-1 border-2 border-purple-500 rounded bg-purple-50 px-2 py-1 relative">
                  <Palette size={16} className="text-purple-600"/>

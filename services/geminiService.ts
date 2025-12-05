@@ -1,6 +1,8 @@
 
 import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { ScriptResponse, QuizResponse, ArtStyle, CharacterProfile, CustomHero } from "../types";
+// Optionally delegate explainText/generateQuiz to Groq when configured
+import * as groqService from "./groqService";
 
 // Helper to get a fresh client
 const GEMINI_API_KEY =
@@ -228,6 +230,12 @@ export const generateSpeech = async (text: string): Promise<ArrayBuffer> => {
 };
 
 export const generateQuiz = async (book: string, chapter: number): Promise<QuizResponse> => {
+  // If Groq is configured, prefer it for quizzes
+  const GROQ_KEY = import.meta?.env?.VITE_GROQ_API_KEY || import.meta?.env?.GROQ_API_KEY || (typeof process !== 'undefined' ? process.env.GROQ_API_KEY : undefined);
+  if (GROQ_KEY) {
+    return groqService.generateQuiz(book, chapter);
+  }
+
   const ai = getAiClient();
   const prompt = `Create a fun 3-question quiz for ${book} Chapter ${chapter}.`;
 
@@ -261,6 +269,12 @@ export const generateQuiz = async (book: string, chapter: number): Promise<QuizR
 };
 
 export const explainText = async (text: string, context: string, type: string = "simple"): Promise<string> => {
+  // If Groq is configured, delegate explain to it
+  const GROQ_KEY = import.meta?.env?.VITE_GROQ_API_KEY || import.meta?.env?.GROQ_API_KEY || (typeof process !== 'undefined' ? process.env.GROQ_API_KEY : undefined);
+  if (GROQ_KEY) {
+    return groqService.explainText(text, context, type);
+  }
+
   const ai = getAiClient();
   
   let prompt = "";
