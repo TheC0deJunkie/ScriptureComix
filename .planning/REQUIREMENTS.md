@@ -7,17 +7,17 @@
 
 ### Data Foundation
 
-- [ ] **DATA-01**: App loads scripture data lazily per-book from `public/data/` via fetch — no static imports in the JS bundle
+- [x] **DATA-01**: App loads scripture data lazily per-book from `public/data/` via fetch — no static imports in the JS bundle
 - [ ] **DATA-02**: App works fully offline after first visit via Service Worker (vite-plugin-pwa + Workbox CacheFirst for `/data/**`)
 - [x] **DATA-03**: Per-tradition canon index manifests (~5KB each) load eagerly so book/chapter lists render without fetching full text
-- [ ] **DATA-04**: Copyrighted translations (NIV, NLT, NKJV, NASB, NABRE, etc.) are included AND display a clear copyright attribution notice in the UI — users get their preferred translation, publishers are credited
+- [x] **DATA-04**: Copyrighted translations (NIV, NLT, NKJV, NASB, NABRE, etc.) are included AND display a clear copyright attribution notice in the UI — users get their preferred translation, publishers are credited
 
 ### Canon Coverage
 
-- [ ] **CANON-01**: User can browse the full Protestant canon (66 books) in multiple translations (KJV, WEB, NIV, NLT, NKJV, NASB) offline
-- [ ] **CANON-02**: User can browse the full Catholic canon (73 books) including all 7 deuterocanonical books offline
-- [ ] **CANON-03**: User can browse the Ethiopian Orthodox canon (OT+NT + 1 Enoch + Jubilees + confirmed public-domain additions) offline
-- [ ] **CANON-04**: User can browse the full Quran (114 surahs) in Yusuf Ali translation offline
+- [x] **CANON-01**: User can browse the full Protestant canon (66 books) in multiple translations (KJV, WEB, NIV, NLT, NKJV, NASB) offline
+- [x] **CANON-02**: User can browse the full Catholic canon (73 books) including all 7 deuterocanonical books offline
+- [x] **CANON-03**: User can browse the Ethiopian Orthodox canon (OT+NT + 1 Enoch + Jubilees + confirmed public-domain additions) offline
+- [x] **CANON-04**: User can browse the full Quran (114 surahs) in Yusuf Ali translation offline
 
 ### Pre-Generation Pipelines (Server-Side, Run Once)
 
@@ -93,14 +93,14 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DATA-01 | Phase 1 | Pending |
+| DATA-01 | Phase 1 | Complete |
 | DATA-02 | Phase 1 | Pending |
 | DATA-03 | Phase 1 | Complete |
-| DATA-04 | Phase 1 | Pending |
-| CANON-01 | Phase 1 | Pending |
-| CANON-02 | Phase 1 | Pending |
-| CANON-03 | Phase 1 | Pending |
-| CANON-04 | Phase 1 | Pending |
+| DATA-04 | Phase 1 | Complete |
+| CANON-01 | Phase 1 | Complete |
+| CANON-02 | Phase 1 | Complete |
+| CANON-03 | Phase 1 | Complete |
+| CANON-04 | Phase 1 | Complete |
 | NAV-01 | Phase 1 | Complete |
 | NAV-02 | Phase 1 | Complete |
 | PIPE-01 | Phase 2 | Pending |
