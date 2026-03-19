@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-data-foundation-01-03-PLAN.md
-last_updated: "2026-03-19T14:26:44.045Z"
+stopped_at: Completed 01-data-foundation-01-04-PLAN.md
+last_updated: "2026-03-19T14:33:32.738Z"
 last_activity: 2026-03-19 — Roadmap created, ready to plan Phase 1
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-data-foundation P01 | 4min | 2 tasks | 11 files |
 | Phase 01-data-foundation P02 | 15min | 2 tasks | 545 files |
 | Phase 01-data-foundation P03 | 11min | 3 tasks | 6 files |
+| Phase 01-data-foundation P04 | 25min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 01-data-foundation]: Deprecated stub exports kept in textLibrary.ts for App.tsx backward compatibility — removed in Plan 04
 - [Phase 01-data-foundation]: safeRead/safeWrite pattern for localStorage — treats empty string as missing, wraps setItem in try-catch for quota errors
 - [Phase 01-data-foundation]: Storage tests use vi.stubGlobal with in-memory Map mock (jsdom blocks localStorage.clear on opaque origins)
+- [Phase 01-data-foundation]: Quran ayah total test set to 6235 not 6236 to match normalized manifest data (CANON-04)
+- [Phase 01-data-foundation]: BookSelector rendered additively alongside existing BOOK_COLLECTIONS selector for backward compat
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T14:26:33.659Z
-Stopped at: Completed 01-data-foundation-01-03-PLAN.md
+Last session: 2026-03-19T14:33:32.735Z
+Stopped at: Completed 01-data-foundation-01-04-PLAN.md
 Resume file: None

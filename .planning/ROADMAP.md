@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The main JS bundle is under 1MB; scripture text loads lazily per-book from `/data/` via fetch, not static imports
   4. The app does not crash when localStorage is corrupt or full — deserialization is wrapped in try-catch with safe fallback
   5. Quran ayah numbering is normalized to a single canonical convention across all datasets
-**Plans:** 3/5 plans executed
+**Plans:** 4/5 plans executed
 Plans:
 - [ ] 01-01-PLAN.md — Test infrastructure (vitest) and type contracts (Tradition, CanonManifest, ManifestBook)
 - [ ] 01-02-PLAN.md — Data transformation script: convert all source datasets to per-book JSON + canon manifests
@@ -78,7 +78,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 3/5 | In Progress|  |
+| 1. Data Foundation | 4/5 | In Progress|  |
 | 2. Server Pipeline + Backend | 0/? | Not started | - |
 | 3. Reading Experience | 0/? | Not started | - |
 | 4. Admin Dashboard | 0/? | Not started | - |
