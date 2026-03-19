@@ -1,0 +1,812 @@
+{
+  "tradition": "quran",
+  "displayName": "Quran",
+  "basmala": "In the Name of Allah,the All-beneficent, the All-merciful.",
+  "books": [
+    {
+      "slug": "al-fatiha",
+      "displayName": "Al-Fatiha",
+      "chapters": [
+        6
+      ]
+    },
+    {
+      "slug": "al-baqarah",
+      "displayName": "Al-Baqarah",
+      "chapters": [
+        286
+      ]
+    },
+    {
+      "slug": "al-imran",
+      "displayName": "Al-Imran",
+      "chapters": [
+        200
+      ]
+    },
+    {
+      "slug": "an-nisa",
+      "displayName": "An-Nisa",
+      "chapters": [
+        176
+      ]
+    },
+    {
+      "slug": "al-maidah",
+      "displayName": "Al-Maidah",
+      "chapters": [
+        120
+      ]
+    },
+    {
+      "slug": "al-anam",
+      "displayName": "Al-Anam",
+      "chapters": [
+        165
+      ]
+    },
+    {
+      "slug": "al-araf",
+      "displayName": "Al-Araf",
+      "chapters": [
+        206
+      ]
+    },
+    {
+      "slug": "al-anfal",
+      "displayName": "Al-Anfal",
+      "chapters": [
+        75
+      ]
+    },
+    {
+      "slug": "at-tawbah",
+      "displayName": "At-Tawbah",
+      "chapters": [
+        129
+      ]
+    },
+    {
+      "slug": "yunus",
+      "displayName": "Yunus",
+      "chapters": [
+        109
+      ]
+    },
+    {
+      "slug": "hud",
+      "displayName": "Hud",
+      "chapters": [
+        123
+      ]
+    },
+    {
+      "slug": "yusuf",
+      "displayName": "Yusuf",
+      "chapters": [
+        111
+      ]
+    },
+    {
+      "slug": "ar-rad",
+      "displayName": "Ar-Rad",
+      "chapters": [
+        43
+      ]
+    },
+    {
+      "slug": "ibrahim",
+      "displayName": "Ibrahim",
+      "chapters": [
+        52
+      ]
+    },
+    {
+      "slug": "al-hijr",
+      "displayName": "Al-Hijr",
+      "chapters": [
+        99
+      ]
+    },
+    {
+      "slug": "an-nahl",
+      "displayName": "An-Nahl",
+      "chapters": [
+        128
+      ]
+    },
+    {
+      "slug": "al-isra",
+      "displayName": "Al-Isra",
+      "chapters": [
+        111
+      ]
+    },
+    {
+      "slug": "al-kahf",
+      "displayName": "Al-Kahf",
+      "chapters": [
+        110
+      ]
+    },
+    {
+      "slug": "maryam",
+      "displayName": "Maryam",
+      "chapters": [
+        98
+      ]
+    },
+    {
+      "slug": "ta-ha",
+      "displayName": "Ta-Ha",
+      "chapters": [
+        135
+      ]
+    },
+    {
+      "slug": "al-anbiya",
+      "displayName": "Al-Anbiya",
+      "chapters": [
+        112
+      ]
+    },
+    {
+      "slug": "al-hajj",
+      "displayName": "Al-Hajj",
+      "chapters": [
+        78
+      ]
+    },
+    {
+      "slug": "al-muminun",
+      "displayName": "Al-Muminun",
+      "chapters": [
+        118
+      ]
+    },
+    {
+      "slug": "an-nur",
+      "displayName": "An-Nur",
+      "chapters": [
+        64
+      ]
+    },
+    {
+      "slug": "al-furqan",
+      "displayName": "Al-Furqan",
+      "chapters": [
+        77
+      ]
+    },
+    {
+      "slug": "ash-shuara",
+      "displayName": "Ash-Shuara",
+      "chapters": [
+        227
+      ]
+    },
+    {
+      "slug": "an-naml",
+      "displayName": "An-Naml",
+      "chapters": [
+        93
+      ]
+    },
+    {
+      "slug": "al-qasas",
+      "displayName": "Al-Qasas",
+      "chapters": [
+        88
+      ]
+    },
+    {
+      "slug": "al-ankabut",
+      "displayName": "Al-Ankabut",
+      "chapters": [
+        69
+      ]
+    },
+    {
+      "slug": "ar-rum",
+      "displayName": "Ar-Rum",
+      "chapters": [
+        60
+      ]
+    },
+    {
+      "slug": "luqman",
+      "displayName": "Luqman",
+      "chapters": [
+        34
+      ]
+    },
+    {
+      "slug": "as-sajdah",
+      "displayName": "As-Sajdah",
+      "chapters": [
+        30
+      ]
+    },
+    {
+      "slug": "al-ahzab",
+      "displayName": "Al-Ahzab",
+      "chapters": [
+        73
+      ]
+    },
+    {
+      "slug": "saba",
+      "displayName": "Saba",
+      "chapters": [
+        54
+      ]
+    },
+    {
+      "slug": "fatir",
+      "displayName": "Fatir",
+      "chapters": [
+        45
+      ]
+    },
+    {
+      "slug": "ya-sin",
+      "displayName": "Ya-Sin",
+      "chapters": [
+        83
+      ]
+    },
+    {
+      "slug": "as-saffat",
+      "displayName": "As-Saffat",
+      "chapters": [
+        182
+      ]
+    },
+    {
+      "slug": "sad",
+      "displayName": "Sad",
+      "chapters": [
+        88
+      ]
+    },
+    {
+      "slug": "az-zumar",
+      "displayName": "Az-Zumar",
+      "chapters": [
+        75
+      ]
+    },
+    {
+      "slug": "ghafir",
+      "displayName": "Ghafir",
+      "chapters": [
+        85
+      ]
+    },
+    {
+      "slug": "fussilat",
+      "displayName": "Fussilat",
+      "chapters": [
+        54
+      ]
+    },
+    {
+      "slug": "ash-shura",
+      "displayName": "Ash-Shura",
+      "chapters": [
+        53
+      ]
+    },
+    {
+      "slug": "az-zukhruf",
+      "displayName": "Az-Zukhruf",
+      "chapters": [
+        89
+      ]
+    },
+    {
+      "slug": "ad-dukhan",
+      "displayName": "Ad-Dukhan",
+      "chapters": [
+        59
+      ]
+    },
+    {
+      "slug": "al-jathiyah",
+      "displayName": "Al-Jathiyah",
+      "chapters": [
+        37
+      ]
+    },
+    {
+      "slug": "al-ahqaf",
+      "displayName": "Al-Ahqaf",
+      "chapters": [
+        35
+      ]
+    },
+    {
+      "slug": "muhammad",
+      "displayName": "Muhammad",
+      "chapters": [
+        38
+      ]
+    },
+    {
+      "slug": "al-fath",
+      "displayName": "Al-Fath",
+      "chapters": [
+        29
+      ]
+    },
+    {
+      "slug": "al-hujurat",
+      "displayName": "Al-Hujurat",
+      "chapters": [
+        18
+      ]
+    },
+    {
+      "slug": "qaf",
+      "displayName": "Qaf",
+      "chapters": [
+        45
+      ]
+    },
+    {
+      "slug": "adh-dhariyat",
+      "displayName": "Adh-Dhariyat",
+      "chapters": [
+        60
+      ]
+    },
+    {
+      "slug": "at-tur",
+      "displayName": "At-Tur",
+      "chapters": [
+        49
+      ]
+    },
+    {
+      "slug": "an-najm",
+      "displayName": "An-Najm",
+      "chapters": [
+        62
+      ]
+    },
+    {
+      "slug": "al-qamar",
+      "displayName": "Al-Qamar",
+      "chapters": [
+        55
+      ]
+    },
+    {
+      "slug": "ar-rahman",
+      "displayName": "Ar-Rahman",
+      "chapters": [
+        78
+      ]
+    },
+    {
+      "slug": "al-waqiah",
+      "displayName": "Al-Waqiah",
+      "chapters": [
+        96
+      ]
+    },
+    {
+      "slug": "al-hadid",
+      "displayName": "Al-Hadid",
+      "chapters": [
+        29
+      ]
+    },
+    {
+      "slug": "al-mujadila",
+      "displayName": "Al-Mujadila",
+      "chapters": [
+        22
+      ]
+    },
+    {
+      "slug": "al-hashr",
+      "displayName": "Al-Hashr",
+      "chapters": [
+        24
+      ]
+    },
+    {
+      "slug": "al-mumtahanah",
+      "displayName": "Al-Mumtahanah",
+      "chapters": [
+        13
+      ]
+    },
+    {
+      "slug": "as-saf",
+      "displayName": "As-Saf",
+      "chapters": [
+        14
+      ]
+    },
+    {
+      "slug": "al-jumuah",
+      "displayName": "Al-Jumuah",
+      "chapters": [
+        11
+      ]
+    },
+    {
+      "slug": "al-munafiqun",
+      "displayName": "Al-Munafiqun",
+      "chapters": [
+        11
+      ]
+    },
+    {
+      "slug": "at-taghabun",
+      "displayName": "At-Taghabun",
+      "chapters": [
+        18
+      ]
+    },
+    {
+      "slug": "at-talaq",
+      "displayName": "At-Talaq",
+      "chapters": [
+        12
+      ]
+    },
+    {
+      "slug": "at-tahrim",
+      "displayName": "At-Tahrim",
+      "chapters": [
+        12
+      ]
+    },
+    {
+      "slug": "al-mulk",
+      "displayName": "Al-Mulk",
+      "chapters": [
+        30
+      ]
+    },
+    {
+      "slug": "al-qalam",
+      "displayName": "Al-Qalam",
+      "chapters": [
+        52
+      ]
+    },
+    {
+      "slug": "al-haqqah",
+      "displayName": "Al-Haqqah",
+      "chapters": [
+        52
+      ]
+    },
+    {
+      "slug": "al-maarij",
+      "displayName": "Al-Maarij",
+      "chapters": [
+        44
+      ]
+    },
+    {
+      "slug": "nuh",
+      "displayName": "Nuh",
+      "chapters": [
+        28
+      ]
+    },
+    {
+      "slug": "al-jinn",
+      "displayName": "Al-Jinn",
+      "chapters": [
+        28
+      ]
+    },
+    {
+      "slug": "al-muzzammil",
+      "displayName": "Al-Muzzammil",
+      "chapters": [
+        20
+      ]
+    },
+    {
+      "slug": "al-muddaththir",
+      "displayName": "Al-Muddaththir",
+      "chapters": [
+        56
+      ]
+    },
+    {
+      "slug": "al-qiyamah",
+      "displayName": "Al-Qiyamah",
+      "chapters": [
+        40
+      ]
+    },
+    {
+      "slug": "al-insan",
+      "displayName": "Al-Insan",
+      "chapters": [
+        31
+      ]
+    },
+    {
+      "slug": "al-mursalat",
+      "displayName": "Al-Mursalat",
+      "chapters": [
+        50
+      ]
+    },
+    {
+      "slug": "an-naba",
+      "displayName": "An-Naba",
+      "chapters": [
+        40
+      ]
+    },
+    {
+      "slug": "an-naziat",
+      "displayName": "An-Naziat",
+      "chapters": [
+        46
+      ]
+    },
+    {
+      "slug": "abasa",
+      "displayName": "Abasa",
+      "chapters": [
+        42
+      ]
+    },
+    {
+      "slug": "at-takwir",
+      "displayName": "At-Takwir",
+      "chapters": [
+        29
+      ]
+    },
+    {
+      "slug": "al-infitar",
+      "displayName": "Al-Infitar",
+      "chapters": [
+        19
+      ]
+    },
+    {
+      "slug": "al-mutaffifin",
+      "displayName": "Al-Mutaffifin",
+      "chapters": [
+        36
+      ]
+    },
+    {
+      "slug": "al-inshiqaq",
+      "displayName": "Al-Inshiqaq",
+      "chapters": [
+        25
+      ]
+    },
+    {
+      "slug": "al-buruj",
+      "displayName": "Al-Buruj",
+      "chapters": [
+        22
+      ]
+    },
+    {
+      "slug": "at-tariq",
+      "displayName": "At-Tariq",
+      "chapters": [
+        17
+      ]
+    },
+    {
+      "slug": "al-ala",
+      "displayName": "Al-Ala",
+      "chapters": [
+        19
+      ]
+    },
+    {
+      "slug": "al-ghashiyah",
+      "displayName": "Al-Ghashiyah",
+      "chapters": [
+        26
+      ]
+    },
+    {
+      "slug": "al-fajr",
+      "displayName": "Al-Fajr",
+      "chapters": [
+        30
+      ]
+    },
+    {
+      "slug": "al-balad",
+      "displayName": "Al-Balad",
+      "chapters": [
+        20
+      ]
+    },
+    {
+      "slug": "ash-shams",
+      "displayName": "Ash-Shams",
+      "chapters": [
+        15
+      ]
+    },
+    {
+      "slug": "al-layl",
+      "displayName": "Al-Layl",
+      "chapters": [
+        21
+      ]
+    },
+    {
+      "slug": "ad-duha",
+      "displayName": "Ad-Duha",
+      "chapters": [
+        11
+      ]
+    },
+    {
+      "slug": "ash-sharh",
+      "displayName": "Ash-Sharh",
+      "chapters": [
+        8
+      ]
+    },
+    {
+      "slug": "at-tin",
+      "displayName": "At-Tin",
+      "chapters": [
+        8
+      ]
+    },
+    {
+      "slug": "al-alaq",
+      "displayName": "Al-Alaq",
+      "chapters": [
+        19
+      ]
+    },
+    {
+      "slug": "al-qadr",
+      "displayName": "Al-Qadr",
+      "chapters": [
+        5
+      ]
+    },
+    {
+      "slug": "al-bayyinah",
+      "displayName": "Al-Bayyinah",
+      "chapters": [
+        8
+      ]
+    },
+    {
+      "slug": "az-zalzalah",
+      "displayName": "Az-Zalzalah",
+      "chapters": [
+        8
+      ]
+    },
+    {
+      "slug": "al-adiyat",
+      "displayName": "Al-Adiyat",
+      "chapters": [
+        11
+      ]
+    },
+    {
+      "slug": "al-qariah",
+      "displayName": "Al-Qariah",
+      "chapters": [
+        11
+      ]
+    },
+    {
+      "slug": "at-takathur",
+      "displayName": "At-Takathur",
+      "chapters": [
+        8
+      ]
+    },
+    {
+      "slug": "al-asr",
+      "displayName": "Al-Asr",
+      "chapters": [
+        3
+      ]
+    },
+    {
+      "slug": "al-humazah",
+      "displayName": "Al-Humazah",
+      "chapters": [
+        9
+      ]
+    },
+    {
+      "slug": "al-fil",
+      "displayName": "Al-Fil",
+      "chapters": [
+        5
+      ]
+    },
+    {
+      "slug": "quraysh",
+      "displayName": "Quraysh",
+      "chapters": [
+        4
+      ]
+    },
+    {
+      "slug": "al-maun",
+      "displayName": "Al-Maun",
+      "chapters": [
+        7
+      ]
+    },
+    {
+      "slug": "al-kawthar",
+      "displayName": "Al-Kawthar",
+      "chapters": [
+        3
+      ]
+    },
+    {
+      "slug": "al-kafirun",
+      "displayName": "Al-Kafirun",
+      "chapters": [
+        6
+      ]
+    },
+    {
+      "slug": "an-nasr",
+      "displayName": "An-Nasr",
+      "chapters": [
+        3
+      ]
+    },
+    {
+      "slug": "al-masad",
+      "displayName": "Al-Masad",
+      "chapters": [
+        5
+      ]
+    },
+    {
+      "slug": "al-ikhlas",
+      "displayName": "Al-Ikhlas",
+      "chapters": [
+        4
+      ]
+    },
+    {
+      "slug": "al-falaq",
+      "displayName": "Al-Falaq",
+      "chapters": [
+        5
+      ]
+    },
+    {
+      "slug": "an-nas",
+      "displayName": "An-Nas",
+      "chapters": [
+        6
+      ]
+    }
+  ],
+  "translations": [
+    {
+      "id": "yusuf-ali",
+      "displayName": "English Translation",
+      "isPublicDomain": true
+    }
+  ]
+}

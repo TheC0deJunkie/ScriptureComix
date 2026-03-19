@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Copyrighted Bible translations — generated locally, not committed
+public/data/protestant/niv/
+public/data/protestant/nlt/
+public/data/protestant/nkjv/
+public/data/protestant/nasb/
+public/data/catholic/nabre/
