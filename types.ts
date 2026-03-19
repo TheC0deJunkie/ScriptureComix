@@ -279,3 +279,7 @@ export const BIBLE_BOOKS = Array.from(new Set(Object.values(BOOK_COLLECTIONS).fl
 
 // Free tier allowed books: for now allow the entire standard Bible to be browsed locally.
 export const FREE_ALLOWED_BOOKS = [...BIBLE_BOOKS];
+
+// Re-export new type contracts from services/types.ts
+// Keeps types.ts as the single import point for components
+export { type Tradition, type CanonManifest, type ManifestBook, type TranslationMeta, TRADITIONS, TRADITION_LABELS, NAV_LABELS } from './services/types';
