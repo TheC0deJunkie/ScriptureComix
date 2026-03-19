@@ -8,7 +8,7 @@
 ### Data Foundation
 
 - [x] **DATA-01**: App loads scripture data lazily per-book from `public/data/` via fetch — no static imports in the JS bundle
-- [ ] **DATA-02**: App works fully offline after first visit via Service Worker (vite-plugin-pwa + Workbox CacheFirst for `/data/**`)
+- [x] **DATA-02**: App works fully offline after first visit via Service Worker (vite-plugin-pwa + Workbox CacheFirst for `/data/**`)
 - [x] **DATA-03**: Per-tradition canon index manifests (~5KB each) load eagerly so book/chapter lists render without fetching full text
 - [x] **DATA-04**: Copyrighted translations (NIV, NLT, NKJV, NASB, NABRE, etc.) are included AND display a clear copyright attribution notice in the UI — users get their preferred translation, publishers are credited
 
@@ -94,7 +94,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DATA-01 | Phase 1 | Complete |
-| DATA-02 | Phase 1 | Pending |
+| DATA-02 | Phase 1 | Complete |
 | DATA-03 | Phase 1 | Complete |
 | DATA-04 | Phase 1 | Complete |
 | CANON-01 | Phase 1 | Complete |

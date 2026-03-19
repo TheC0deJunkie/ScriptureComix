@@ -12,7 +12,7 @@ ScriptureComix ships in four phases. Phase 1 clears the blockers that would cont
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Data Foundation** - Clean the data layer: copyright-safe translations, lazy per-book loading, Service Worker offline, localStorage safety
+- [x] **Phase 1: Data Foundation** - Clean the data layer: copyright-safe translations, lazy per-book loading, Service Worker offline, localStorage safety (completed 2026-03-19)
 - [ ] **Phase 2: Server Pipeline + Backend** - Build VPS backend and run generation pipelines that pre-generate all comics and explanations once
 - [ ] **Phase 3: Reading Experience** - Surface pre-generated content in UI: context panel, narrative explanations, tradition switcher, cross-tradition search
 - [ ] **Phase 4: Admin Dashboard** - Operator tooling to inspect, rate, and manage the communal forever-store
@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The main JS bundle is under 1MB; scripture text loads lazily per-book from `/data/` via fetch, not static imports
   4. The app does not crash when localStorage is corrupt or full — deserialization is wrapped in try-catch with safe fallback
   5. Quran ayah numbering is normalized to a single canonical convention across all datasets
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 Plans:
 - [ ] 01-01-PLAN.md — Test infrastructure (vitest) and type contracts (Tradition, CanonManifest, ManifestBook)
 - [ ] 01-02-PLAN.md — Data transformation script: convert all source datasets to per-book JSON + canon manifests
@@ -78,7 +78,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Data Foundation | 4/5 | In Progress|  |
+| 1. Data Foundation | 5/5 | Complete   | 2026-03-19 |
 | 2. Server Pipeline + Backend | 0/? | Not started | - |
 | 3. Reading Experience | 0/? | Not started | - |
 | 4. Admin Dashboard | 0/? | Not started | - |
