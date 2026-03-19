@@ -27,6 +27,9 @@ import {
 } from './types';
 import { getCacheKey, loadCachedChapter, saveCachedChapter } from './services/cacheService';
 import { loadChapterText, loadTextCatalog, discoverScriptures, loadScriptureData, extractVersesFromScripture, ScriptureEntry } from './services/textLibrary';
+import { Tradition } from './services/types';
+import { TraditionSwitcher } from './components/TraditionSwitcher';
+import { BookSelector } from './components/BookSelector';
 
 const DEFAULT_STATS: UserStats = {
   streak: 0,
@@ -95,6 +98,11 @@ const App: React.FC = () => {
   // `version` can be a builtin `BibleVersion` or a discovered scripture id string
   // in the form `SCRIPTURE::<id>`.
   const [version, setVersion] = useState<string | BibleVersion>(BibleVersion.NIV);
+
+  // Tradition switcher state (Plan 01-04)
+  const [tradition, setTradition] = useState<Tradition>('protestant');
+  const [selectedBookSlug, setSelectedBookSlug] = useState<string | null>(null);
+  const [selectedTranslation, setSelectedTranslation] = useState<string | null>('kjv');
   const [artStyle, setArtStyle] = useState<ArtStyle>(ArtStyle.COMIC_MODERN);
   const [language, setLanguage] = useState("English");
   
@@ -1438,7 +1446,38 @@ const App: React.FC = () => {
       <header className="sticky top-0 z-40 bg-white border-b-4 border-black shadow-md print:hidden">
         <div className="container mx-auto max-w-6xl p-3 flex flex-col xl:flex-row items-center justify-between gap-3">
           <div className="flex flex-wrap items-center justify-center gap-2 w-full xl:w-auto">
-             
+
+             {/* TRADITION SWITCHER — selects the scripture tradition (Protestant, Catholic, Ethiopian, Quran) */}
+             <TraditionSwitcher
+               selected={tradition}
+               onChange={(t) => {
+                 setTradition(t);
+                 setSelectedBookSlug(null);
+                 const defaultTranslations: Record<Tradition, string> = {
+                   protestant: 'kjv', catholic: 'nabre', ethiopian: 'kjv', quran: 'yusuf-ali',
+                 };
+                 setSelectedTranslation(defaultTranslations[t]);
+               }}
+             />
+
+             {/* MANIFEST-DRIVEN BOOK SELECTOR — driven by tradition, replaces static BOOK_COLLECTIONS list */}
+             <BookSelector
+               tradition={tradition}
+               selectedBook={selectedBookSlug}
+               selectedChapter={selectedChapter}
+               selectedTranslation={selectedTranslation}
+               onBookChange={(slug, displayName) => {
+                 setSelectedBookSlug(slug);
+                 setSelectedBook(displayName);
+               }}
+               onChapterChange={(ch) => {
+                 setSelectedChapter(ch);
+               }}
+               onTranslationChange={(translationId) => {
+                 setSelectedTranslation(translationId);
+               }}
+             />
+
              {/* BOOK SELECTOR (GROUPED) - always use canonical Bible book list from BOOK_COLLECTIONS */}
              <select value={selectedBook} onChange={handleBookChange} className="px-2 py-2 border-2 border-black font-bold focus:bg-yellow-100 rounded bg-gray-50 max-w-[200px]">
                {Object.entries(BOOK_COLLECTIONS).map(([group, books]) => (
