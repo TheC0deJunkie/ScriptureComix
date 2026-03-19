@@ -101,34 +101,34 @@
 | CANON-02 | Phase 1 | Pending |
 | CANON-03 | Phase 1 | Pending |
 | CANON-04 | Phase 1 | Pending |
+| NAV-01 | Phase 1 | Pending |
+| NAV-02 | Phase 1 | Pending |
 | PIPE-01 | Phase 2 | Pending |
 | PIPE-02 | Phase 2 | Pending |
 | PIPE-03 | Phase 2 | Pending |
 | PIPE-04 | Phase 2 | Pending |
-| BACK-01 | Phase 3 | Pending |
-| BACK-02 | Phase 3 | Pending |
-| BACK-03 | Phase 3 | Pending |
-| BACK-04 | Phase 3 | Pending |
-| EXPL-01 | Phase 3 | Pending |
-| EXPL-02 | Phase 3 | Pending |
-| EXPL-03 | Phase 3 | Pending |
+| BACK-01 | Phase 2 | Pending |
+| BACK-02 | Phase 2 | Pending |
+| BACK-03 | Phase 2 | Pending |
+| BACK-04 | Phase 2 | Pending |
 | COMIC-01 | Phase 2 | Pending |
 | COMIC-02 | Phase 2 | Pending |
 | COMIC-03 | Phase 2 | Pending |
+| EXPL-01 | Phase 3 | Pending |
+| EXPL-02 | Phase 3 | Pending |
+| EXPL-03 | Phase 3 | Pending |
+| NAV-03 | Phase 3 | Pending |
 | ADMIN-01 | Phase 4 | Pending |
 | ADMIN-02 | Phase 4 | Pending |
 | ADMIN-03 | Phase 4 | Pending |
 | ADMIN-04 | Phase 4 | Pending |
 | ADMIN-05 | Phase 4 | Pending |
-| NAV-01 | Phase 1 | Pending |
-| NAV-02 | Phase 1 | Pending |
-| NAV-03 | Phase 5 | Pending |
 
 **Coverage:**
 - v1 requirements: 30 total
 - Mapped to phases: 30
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 — revised after user clarifications: all comics pre-generated server-side, communal forever-store on Hostinger VPS, copyrighted translations included with attribution, no text card fallback*
+*Last updated: 2026-03-19 — traceability updated for 4-phase roadmap; BACK-01..04 consolidated into Phase 2 (server pipeline); NAV-03 consolidated into Phase 3 (reading experience); Phase 5 eliminated (coarse granularity compression)*
