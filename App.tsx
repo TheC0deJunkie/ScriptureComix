@@ -51,6 +51,27 @@ const STORAGE_KEYS = {
   profile: 'scriptureComix_readerProfile'
 };
 
+/** Safe localStorage read — returns fallback on missing, corrupt, or unparseable data */
+function safeRead<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw === null || raw === '') return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    console.warn(`[storage] corrupt data at key "${key}", resetting to default`);
+    return fallback;
+  }
+}
+
+/** Safe localStorage write — logs warning on quota exceeded, does not crash */
+function safeWrite(key: string, value: unknown): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (err) {
+    console.warn(`[storage] write failed for key "${key}"`, err);
+  }
+}
+
 const HERO_LIMIT = 3;
 
 const FALLBACK_VERSION_PRIORITY: BibleVersion[] = [
@@ -156,41 +177,33 @@ const App: React.FC = () => {
 
   // --- INIT & PERSISTENCE ---
   useEffect(() => {
-    const savedStats = localStorage.getItem(STORAGE_KEYS.stats);
+    const savedStats = safeRead<UserStats | null>(STORAGE_KEYS.stats, null);
     if (savedStats) {
-      const parsed = JSON.parse(savedStats);
-      if (!parsed.tier) parsed.tier = UserTier.FREE;
-      if (typeof parsed.dailyAiUsage === 'undefined') parsed.dailyAiUsage = 0;
-      setStats(parsed);
+      if (!savedStats.tier) savedStats.tier = UserTier.FREE;
+      if (typeof savedStats.dailyAiUsage === 'undefined') savedStats.dailyAiUsage = 0;
+      setStats(savedStats);
     }
-    const savedNotes = localStorage.getItem(STORAGE_KEYS.notes);
-    if (savedNotes) setNotes(JSON.parse(savedNotes));
-    const savedJourneys = localStorage.getItem(STORAGE_KEYS.journeys);
-    if (savedJourneys) setJourneyProgress(JSON.parse(savedJourneys));
+    const savedNotes = safeRead<Record<string, string>>(STORAGE_KEYS.notes, {});
+    if (Object.keys(savedNotes).length > 0) setNotes(savedNotes);
+    const savedJourneys = safeRead<Record<string, any>>(STORAGE_KEYS.journeys, {});
+    if (Object.keys(savedJourneys).length > 0) setJourneyProgress(savedJourneys);
     const savedActiveJourney = localStorage.getItem(STORAGE_KEYS.activeJourney);
     if (savedActiveJourney) setActiveJourneyId(savedActiveJourney);
-    const savedGroups = localStorage.getItem(STORAGE_KEYS.groups);
-    if (savedGroups) setStudyGroups(JSON.parse(savedGroups));
-    const savedHeroes = localStorage.getItem(STORAGE_KEYS.heroes);
-    if (savedHeroes) setCustomHeroes(JSON.parse(savedHeroes));
-    const savedActiveHeroes = localStorage.getItem(STORAGE_KEYS.activeHeroes);
-    if (savedActiveHeroes) setActiveHeroIds(JSON.parse(savedActiveHeroes));
-    const savedOfflinePacks = localStorage.getItem(STORAGE_KEYS.offline);
-    if (savedOfflinePacks) setOfflinePacks(JSON.parse(savedOfflinePacks));
-    const savedProfile = localStorage.getItem(STORAGE_KEYS.profile);
-    if (savedProfile) {
-      try {
-        const parsed = JSON.parse(savedProfile);
-        if (parsed.displayName) {
-          setProfile({
-            displayName: parsed.displayName,
-            faithTradition: parsed.faithTradition || 'Curious',
-            exploreLevel: parsed.exploreLevel || 'Medium'
-          });
-        }
-      } catch {
-        // ignore old shape
-      }
+    const savedGroups = safeRead<any[]>(STORAGE_KEYS.groups, []);
+    if (savedGroups.length > 0) setStudyGroups(savedGroups);
+    const savedHeroes = safeRead<any[]>(STORAGE_KEYS.heroes, []);
+    if (savedHeroes.length > 0) setCustomHeroes(savedHeroes);
+    const savedActiveHeroes = safeRead<string[]>(STORAGE_KEYS.activeHeroes, []);
+    if (savedActiveHeroes.length > 0) setActiveHeroIds(savedActiveHeroes);
+    const savedOfflinePacks = safeRead<any[]>(STORAGE_KEYS.offline, []);
+    if (savedOfflinePacks.length > 0) setOfflinePacks(savedOfflinePacks);
+    const savedProfile = safeRead<any>(STORAGE_KEYS.profile, null);
+    if (savedProfile && savedProfile.displayName) {
+      setProfile({
+        displayName: savedProfile.displayName,
+        faithTradition: savedProfile.faithTradition || 'Curious',
+        exploreLevel: savedProfile.exploreLevel || 'Medium'
+      });
     }
     
     // Date Logic for Streak and AI Usage Reset
@@ -220,7 +233,7 @@ const App: React.FC = () => {
         lastAiUsageDate: now.toISOString()
       };
       
-      localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(updated));
+      safeWrite(STORAGE_KEYS.stats, updated);
       return updated;
     });
 
@@ -229,53 +242,53 @@ const App: React.FC = () => {
     setDailyChallenge({ book: randomBook, chapter: randomChapter });
 
     // --- URGENT DONATION MODAL LOGIC (FIRST VISIT) ---
-    const hasSeenDonation = localStorage.getItem('scriptureComix_hasSeenUrgentDonation');
+    const hasSeenDonation = safeRead<string | null>('scriptureComix_hasSeenUrgentDonation', null);
     if (!hasSeenDonation) {
        setTimeout(() => {
-          const s = JSON.parse(localStorage.getItem(STORAGE_KEYS.stats) || '{}');
+          const s = safeRead<any>(STORAGE_KEYS.stats, {});
           if (!s.tier || s.tier === UserTier.FREE) {
             setShowUrgentModal(true);
-            localStorage.setItem('scriptureComix_hasSeenUrgentDonation', 'true');
+            safeWrite('scriptureComix_hasSeenUrgentDonation', 'true');
           }
        }, 2500);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.notes, JSON.stringify(notes));
+    safeWrite(STORAGE_KEYS.notes, notes);
   }, [notes]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.journeys, JSON.stringify(journeyProgress));
+    safeWrite(STORAGE_KEYS.journeys, journeyProgress);
   }, [journeyProgress]);
 
   useEffect(() => {
     if (activeJourneyId) {
-      localStorage.setItem(STORAGE_KEYS.activeJourney, activeJourneyId);
+      safeWrite(STORAGE_KEYS.activeJourney, activeJourneyId);
     } else {
       localStorage.removeItem(STORAGE_KEYS.activeJourney);
     }
   }, [activeJourneyId]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.groups, JSON.stringify(studyGroups));
+    safeWrite(STORAGE_KEYS.groups, studyGroups);
   }, [studyGroups]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.heroes, JSON.stringify(customHeroes));
+    safeWrite(STORAGE_KEYS.heroes, customHeroes);
   }, [customHeroes]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.activeHeroes, JSON.stringify(activeHeroIds));
+    safeWrite(STORAGE_KEYS.activeHeroes, activeHeroIds);
   }, [activeHeroIds]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.offline, JSON.stringify(offlinePacks));
+    safeWrite(STORAGE_KEYS.offline, offlinePacks);
   }, [offlinePacks]);
 
   useEffect(() => {
     if (profile.displayName.trim()) {
-      localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(profile));
+      safeWrite(STORAGE_KEYS.profile, profile);
     } else {
       localStorage.removeItem(STORAGE_KEYS.profile);
     }
@@ -440,7 +453,7 @@ const App: React.FC = () => {
   const handleUpgrade = (tier: UserTier) => {
     const newStats = { ...stats, tier };
     setStats(newStats);
-    localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(newStats));
+    safeWrite(STORAGE_KEYS.stats, newStats);
     setShowMembershipModal(false);
     alert(`Welcome to ${tier}! Thank you for your support.`);
   };
@@ -500,7 +513,7 @@ const App: React.FC = () => {
            lastAiUsageDate: new Date().toISOString()
          };
          setStats(newStats);
-        localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(newStats));
+        safeWrite(STORAGE_KEYS.stats, newStats);
          return true;
        }
        setShowMembershipModal(true);
@@ -535,7 +548,7 @@ const App: React.FC = () => {
     if (!amount) return;
     setStats(prev => {
       const updated = { ...prev, xp: prev.xp + amount };
-      localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(updated));
+      safeWrite(STORAGE_KEYS.stats, updated);
       return updated;
     });
   };
@@ -623,7 +636,7 @@ const App: React.FC = () => {
   const finalizeChapterSession = () => {
     setStats(prev => {
       const updated = { ...prev, xp: prev.xp + 50, chaptersRead: prev.chaptersRead + 1 };
-      localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(updated));
+      safeWrite(STORAGE_KEYS.stats, updated);
       return updated;
     });
 
@@ -1211,7 +1224,7 @@ const App: React.FC = () => {
       ? stats.bookmarks.filter(b => b !== key)
       : [...stats.bookmarks, key];
     setStats({ ...stats, bookmarks: newBookmarks });
-    localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify({ ...stats, bookmarks: newBookmarks }));
+    safeWrite(STORAGE_KEYS.stats, { ...stats, bookmarks: newBookmarks });
   };
 
   const saveNote = () => {
@@ -1835,7 +1848,7 @@ const App: React.FC = () => {
                             btn.classList.add('bg-green-500', 'text-white', 'border-green-700');
                             const xpGain = { ...stats, xp: stats.xp + 20 };
                             setStats(xpGain);
-                            localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(xpGain));
+                            safeWrite(STORAGE_KEYS.stats, xpGain);
                           } else {
                             btn.classList.add('bg-red-500', 'text-white', 'border-red-700');
                           }
