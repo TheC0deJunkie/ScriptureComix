@@ -35,11 +35,22 @@ export interface ManifestBook {
 
 // Translation metadata shown in picker
 export interface TranslationMeta {
-  id: string;             // "kjv", "niv", "nabre", "yusuf-ali"
+  id: string;             // "kjv", "niv", "nabre", "yusuf-ali", "zul1893"
   displayName: string;    // "King James Version"
-  copyright?: string;     // attribution string shown before selection (null for PD)
+  copyright?: string | null; // attribution string shown before selection (null for PD)
   isPublicDomain: boolean;
+  /** BCP-47 language tag ("en", "zu"). Groups the picker and sets `lang` on the text. English when absent. */
+  language?: string;
 }
+
+/** The language a translation is in; older manifests carry no tag and are English. */
+export const translationLanguage = (t: Pick<TranslationMeta, 'language'> | null | undefined): string => t?.language || 'en';
+
+/** Human name for a language tag, for the picker's group headings. */
+export const LANGUAGE_NAMES: Record<string, string> = {
+  en: 'English', zu: 'isiZulu', xh: 'isiXhosa', st: 'Sesotho', nso: 'Sepedi', tn: 'Setswana', af: 'Afrikaans', ar: 'Arabic', sw: 'Kiswahili',
+};
+export const languageName = (tag: string): string => LANGUAGE_NAMES[tag] || tag;
 
 // All traditions in order for the switcher dropdown
 export const TRADITIONS: Tradition[] = ['protestant', 'catholic', 'ethiopian', 'quran'];

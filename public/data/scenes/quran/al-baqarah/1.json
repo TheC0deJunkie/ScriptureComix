@@ -1,0 +1,70 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 29,
+      "title": "Guidance, Disbelief, Creation",
+      "caption": "The Quran is introduced as guidance for those who believe in the unseen and act righteously. It describes those who reject faith and those who are hypocritical, using parables to illustrate their states. The passage then calls people to worship their Creator, who made the earth and heavens, and challenges doubters to produce a similar revelation. It concludes by reminding people of God's power in giving life and creating all things on earth.",
+      "visualPrompt": "A vast, clear night sky with countless stars, seen from a desert landscape. In the foreground, a single, ancient, gnarled tree stands resiliently against the elements. The overall mood is one of awe and vastness.",
+      "id": "s1"
+    },
+    {
+      "from": 30,
+      "to": 39,
+      "title": "Adam's Creation and Fall",
+      "caption": "God announces to the angels His intention to place a vicegerent on earth. After the angels question this, God teaches Adam the names of all things, demonstrating Adam's knowledge. The angels are commanded to bow to Adam, but Iblis refuses out of arrogance. Adam and his wife dwell in the Garden but are forbidden from a specific tree. Satan causes them to slip, leading to their expulsion, but Adam learns words of repentance.",
+      "visualPrompt": "A lush, green garden with a prominent, ancient tree in the center. A path leads away from the garden into a less fertile, open landscape. The scene is empty of human figures, but the path suggests a recent departure. The mood is one of quiet reflection and consequence.",
+      "id": "s2"
+    },
+    {
+      "from": 40,
+      "to": 62,
+      "title": "Covenant and Early Trials",
+      "caption": "The Children of Israel are reminded to recall God's favors, fulfill their covenant, and believe in the revelation. They are told to seek help through patience and prayer. The passage recounts their deliverance from Pharaoh, the parting of the sea, their worship of the calf, receiving the Scripture, the provision of manna and quails, and their entry into a town. It also mentions their complaints about food and the striking of the rock for water. The passage states that all who believe in God and the Last Day and do good deeds will have their reward.",
+      "visualPrompt": "A wide, dry desert landscape with a distant, shimmering oasis. In the foreground, a large, weathered rock with twelve small streams of water flowing from it into a sandy basin. A few ancient, hardy desert plants grow nearby. The mood is one of survival and provision.",
+      "id": "s3"
+    },
+    {
+      "from": 63,
+      "to": 103,
+      "title": "Sabbath, Heifer, and Criticisms",
+      "caption": "The Children of Israel are reminded of the covenant taken at Mount Sinai. Some among them transgressed the Sabbath, leading to a transformation. The passage then recounts the command to sacrifice a heifer after a man was slain, to reveal the murderer. Their hearts are described as becoming hard. The passage criticizes some for perverting God's word and for their false beliefs about punishment. Further covenants are mentioned, along with criticisms for slaying prophets and rejecting Gabriel. The passage also refers to magic during Solomon's reign.",
+      "visualPrompt": "A towering, rugged mountain peak, partially shrouded in mist or clouds, with a sense of ancient power. In the foreground, a group of people are seen from behind, looking up at the mountain. The ground is rocky and barren. The mood is one of awe and solemnity.",
+      "id": "s4"
+    },
+    {
+      "from": 104,
+      "to": 141,
+      "title": "Abraham's Legacy",
+      "caption": "Believers are warned against those who seek to turn them away from faith. The passage then recounts Abraham's trials, his appointment as a leader, and his building of the Kaaba with Ishmael. Abraham prays for a righteous progeny and for a messenger to be raised among them. The passage emphasizes the legacy of Abraham, Ishmael, Isaac, and Jacob, and their devotion to God.",
+      "visualPrompt": "An ancient, simple stone structure, partially built, seen from a low angle, emphasizing its scale. Tools (hammers, chisels) lie scattered around. The surrounding landscape is sparse and rocky under a bright, clear desert sky. The mood is one of industriousness and dedication, with the absence of figures suggesting the work in progress.",
+      "id": "s5"
+    },
+    {
+      "from": 142,
+      "to": 167,
+      "title": "Direction of Prayer, Patience",
+      "caption": "The direction of prayer is changed from Jerusalem to the Kaaba in Mecca, and believers are instructed to turn their faces towards it. The passage encourages seeking help through patience and prayer, especially in times of fear, hunger, and loss. It mentions the hills of Safa and Marwa as among the signs of God. It concludes by affirming God's oneness and pointing to the signs of creation, warning against blindly following others.",
+      "visualPrompt": "A large, open courtyard of an ancient, simple stone building, with many people (seen from behind, indistinct) facing in a unified direction, performing a ritual. The sun is high, casting strong shadows. The mood is one of communal devotion and order.",
+      "id": "s6"
+    },
+    {
+      "from": 168,
+      "to": 242,
+      "title": "Laws for Community",
+      "caption": "This section provides guidance on lawful foods, the law of retaliation for murder, and the rules for making bequests. It details the requirements for fasting during Ramadan and instructions regarding fighting in God's cause and pilgrimage (Hajj). Further guidance is given on spending, alcohol, gambling, orphans, and extensive laws concerning marriage, divorce, and family matters.",
+      "visualPrompt": "A bustling, well-ordered ancient town square at midday. People are engaged in various daily activities: trading, conversing, walking. The architecture is simple and functional. The overall impression is one of a community living by clear rules, with a sense of order and purpose.",
+      "id": "s7"
+    },
+    {
+      "from": 243,
+      "to": 286,
+      "title": "Justice, Charity, Prayer",
+      "caption": "The passage recounts the story of those who left their homes in fear of death, and the narrative of Saul and Goliath, where a small group overcame a larger army by God's will. It describes the power of prophets and Abraham's demonstration of resurrection. Extensive guidance is given on spending in charity, warning against usury (interest), and detailing the importance of writing down debts and having witnesses. The Surah concludes by affirming God's knowledge of all things and with a prayer for mercy and help.",
+      "visualPrompt": "A serene, ancient scribe's study. Scrolls and writing implements are neatly arranged on a low table. Sunlight streams through a window, illuminating dust motes in the air. The mood is one of quiet contemplation and the diligent recording of knowledge and agreements. No human figures are present, but the setup suggests recent use.",
+      "id": "s8"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T07:57:59.207Z"
+}

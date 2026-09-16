@@ -1,0 +1,136 @@
+{
+  "summary": "The chapter begins by listing Jacob's descendants who came to Egypt, noting their rapid growth after Joseph and his generation died (vv. 1-7). A new king of Egypt, who did not know Joseph, saw the Israelites' large population as a threat (vv. 8-10). He enslaved them and forced them to build cities, but they continued to multiply (vv. 11-14). Pharaoh then ordered Hebrew midwives to kill all newborn Israelite boys (vv. 15-16). The midwives defied Pharaoh, fearing God, and saved the boys (vv. 17-19). As a result, God blessed the midwives and the Israelites continued to grow (vv. 20-21). Finally, Pharaoh commanded all his people to throw every Israelite newborn son into the Nile River (v. 22).",
+  "setting": "This chapter is set in Egypt, an unspecified time after Jacob's family settled there (v. 1). Most historians think this period of enslavement took place during the New Kingdom of Egypt, though the exact pharaoh and dates are debated. The wider situation is that Jacob's descendants, the Israelites, have grown into a large population within Egypt (v. 7).",
+  "events": [
+    {
+      "ref": "vv. 1-5",
+      "what": "Jacob's family, totaling seventy people, comes to live in Egypt."
+    },
+    {
+      "ref": "vv. 6-7",
+      "what": "Joseph and his generation die, and the Israelites become very numerous and powerful, filling the land."
+    },
+    {
+      "ref": "vv. 8-10",
+      "what": "A new king of Egypt, who did not know Joseph, fears the Israelites' growing numbers and potential threat, planning to deal \"wisely\" with them."
+    },
+    {
+      "ref": "vv. 11-14",
+      "what": "The Egyptians enslave the Israelites, forcing them into hard labor building cities, but the Israelites continue to multiply despite the affliction."
+    },
+    {
+      "ref": "vv. 15-16",
+      "what": "The king commands two Hebrew midwives, Shiphrah and Puah, to kill all newborn Israelite boys."
+    },
+    {
+      "ref": "vv. 17-19",
+      "what": "The midwives, fearing God, defy Pharaoh's command and save the boys, claiming Hebrew women deliver quickly."
+    },
+    {
+      "ref": "vv. 20-21",
+      "what": "God blesses the midwives, and the Israelite population continues to grow very mighty."
+    },
+    {
+      "ref": "v. 22",
+      "what": "Pharaoh issues a new decree, commanding all his people to throw every newborn Israelite son into the river."
+    }
+  ],
+  "people": [
+    {
+      "name": "Children of Israel (Israelites)",
+      "role": "Descendants of Jacob who multiply greatly and are enslaved by the Egyptians."
+    },
+    {
+      "name": "Jacob",
+      "role": "Patriarch whose family came to Egypt."
+    },
+    {
+      "name": "Joseph",
+      "role": "Jacob's son who was already in Egypt; his generation dies."
+    },
+    {
+      "name": "King of Egypt (Pharaoh)",
+      "role": "The ruler who enslaves the Israelites and orders the killing of their male infants."
+    },
+    {
+      "name": "Taskmasters",
+      "role": "Egyptian officials who oversee the forced labor of the Israelites."
+    },
+    {
+      "name": "Shiphrah",
+      "role": "One of the Hebrew midwives commanded by Pharaoh to kill male infants, but who defies him."
+    },
+    {
+      "name": "Puah",
+      "role": "One of the Hebrew midwives commanded by Pharaoh to kill male infants, but who defies him."
+    },
+    {
+      "name": "Hebrew midwives",
+      "role": "Women who assist in childbirth for Hebrew women and are commanded to kill male infants."
+    },
+    {
+      "name": "Egyptian people",
+      "role": "Those commanded by Pharaoh to cast Israelite sons into the river."
+    }
+  ],
+  "terms": [
+    {
+      "term": "Children of Israel",
+      "meaning": "Another name for the Israelites, the descendants of Jacob."
+    },
+    {
+      "term": "Pharaoh",
+      "meaning": "The title for the king of ancient Egypt."
+    },
+    {
+      "term": "Treasure cities",
+      "meaning": "Cities built to store supplies or goods for the king (v. 11)."
+    },
+    {
+      "term": "Rigour",
+      "meaning": "Harshness, severity, or strictness in service or treatment (v. 13)."
+    },
+    {
+      "term": "Hebrew women",
+      "meaning": "Women belonging to the Israelite people (v. 15)."
+    },
+    {
+      "term": "Stools",
+      "meaning": "Birthing stools, used by women during childbirth (v. 16)."
+    },
+    {
+      "term": "He made them houses",
+      "meaning": "This phrase is debated; it could mean God gave the midwives families, descendants, or established their households (v. 21)."
+    }
+  ],
+  "readings": [
+    {
+      "tradition": "Jewish",
+      "view": "Jewish tradition often emphasizes the theme of divine providence and the miraculous survival of the Israelites despite Pharaoh's decrees, highlighting the midwives' courage and fear of God."
+    },
+    {
+      "tradition": "Christian (Protestant/Catholic/Orthodox)",
+      "view": "Christian traditions often see the midwives' actions as an example of civil disobedience rooted in a higher moral law, and the chapter as setting the stage for God's redemptive plan through Moses."
+    },
+    {
+      "tradition": "Historical-critical scholarship",
+      "view": "Historical-critical scholarship often examines the text for its literary features, historical context, and potential sources, noting the narrative's focus on the rapid growth of the Israelites and the escalating oppression by Pharaoh as a foundational myth for the nation's origins."
+    },
+    {
+      "tradition": "Feminist readings",
+      "view": "Feminist readings often highlight the agency and moral courage of the women in the narrative, particularly the midwives Shiphrah and Puah, who defy patriarchal power structures to save lives."
+    }
+  ],
+  "oftenQuoted": [
+    {
+      "ref": "v. 8 \"Now there arose up a new king over Egypt, which knew not Joseph.\"",
+      "caution": "This verse is often quoted to describe a new leader or regime that disregards past relationships or achievements. In its context, it explains why the new Pharaoh viewed the Israelites as a threat, leading directly to their enslavement and the subsequent decrees against them."
+    },
+    {
+      "ref": "v. 17 \"But the midwives feared God, and did not as the king of Egypt commanded them, but saved the men children alive.\"",
+      "caution": "This verse is frequently cited as an example of moral courage and prioritizing divine commands over human authority. Within the chapter, it describes the midwives' specific act of defiance against Pharaoh's order to kill Hebrew male infants, which leads to God's blessing upon them and the continued growth of the Israelite population."
+    }
+  ],
+  "generatedAt": "2026-09-16T06:47:00.552Z",
+  "model": "gemini-2.5-flash"
+}

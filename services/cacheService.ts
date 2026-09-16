@@ -23,7 +23,16 @@ const writeStore = (store: CacheStore) => {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
   } catch (error) {
-    console.warn("Cache write failed", error);
+    // Quota exceeded — evict oldest half and retry once
+    const keys = Object.keys(store);
+    if (keys.length > 0) {
+      keys.slice(0, Math.ceil(keys.length / 2)).forEach(k => delete store[k]);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+      } catch {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+    }
   }
 };
 

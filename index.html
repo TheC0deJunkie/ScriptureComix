@@ -22,7 +22,30 @@
       .comic-border {
         border: 3px solid black;
       }
-      
+      /* Motion: small, quick, and off for people who asked for less */
+      @keyframes sc-fade-in { from { opacity: 0 } to { opacity: 1 } }
+      @keyframes sc-pop { from { opacity: 0; transform: translateY(6px) scale(.98) } to { opacity: 1; transform: none } }
+      @keyframes sc-slide-up { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }
+      @keyframes sc-slide-in-right { from { opacity: 0; transform: translateX(24px) } to { opacity: 1; transform: none } }
+      @keyframes sc-bounce-slow { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+      .animate-fade-in { animation: sc-fade-in .18s ease-out both }
+      .animate-pop { animation: sc-pop .16s ease-out both }
+      .animate-slide-up { animation: sc-slide-up .22s cubic-bezier(.2,.8,.2,1) both }
+      .animate-slide-in-right { animation: sc-slide-in-right .22s cubic-bezier(.2,.8,.2,1) both }
+      .animate-bounce-slow { animation: sc-bounce-slow 2.4s ease-in-out infinite }
+      @media (prefers-reduced-motion: reduce) {
+        .animate-fade-in, .animate-pop, .animate-slide-up, .animate-slide-in-right, .animate-bounce-slow { animation: none }
+        * { scroll-behavior: auto !important }
+      }
+      html { scroll-behavior: smooth }
+      /* A new chapter always starts at the top; never let the browser "anchor" us to the old page's bottom */
+      body { overflow-anchor: none }
+      /* Keyboard users always see where they are */
+      :focus-visible { outline: 3px solid #7c3aed; outline-offset: 2px }
+      button:focus:not(:focus-visible) { outline: none }
+      .no-scrollbar::-webkit-scrollbar { display: none }
+      .no-scrollbar { scrollbar-width: none }
+
       @media print {
         @page {
           margin: 1cm;

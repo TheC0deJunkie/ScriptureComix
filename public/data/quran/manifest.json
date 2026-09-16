@@ -1,13 +1,12 @@
 {
   "tradition": "quran",
   "displayName": "Quran",
-  "basmala": "In the Name of Allah,the All-beneficent, the All-merciful.",
   "books": [
     {
       "slug": "al-fatiha",
       "displayName": "Al-Fatiha",
       "chapters": [
-        6
+        7
       ]
     },
     {
@@ -805,8 +804,10 @@
   "translations": [
     {
       "id": "yusuf-ali",
-      "displayName": "English Translation",
-      "isPublicDomain": true
+      "displayName": "Abdullah Yusuf Ali (1934)",
+      "isPublicDomain": true,
+      "copyright": null,
+      "language": "en"
     }
   ]
 }

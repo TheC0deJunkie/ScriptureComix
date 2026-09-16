@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   BookOpen, Sparkles, RefreshCw, Download, ChevronRight, ChevronLeft, 
   Trophy, Flame, Bookmark, Brain, X, Save, Edit3, HelpCircle, User,
-  PlayCircle, Maximize2, Palette, Info, PauseCircle, Book, Globe, Lightbulb, Heart, Lock, Shield, Crown, Users, Compass, Archive, MapPinned
+  PlayCircle, Maximize2, Palette, Info, PauseCircle, Book, Globe, Lightbulb, Heart, Lock, Users, Compass, Archive, Library, Send
 } from 'lucide-react';
 import { generateComicScript, generatePanelImage, generateQuiz, explainText, generateSpeech } from './services/geminiService';
 import { ComicPanel } from './components/ComicPanel';
@@ -14,7 +14,6 @@ import { UrgentDonationModal } from './components/UrgentDonationModal';
 import { MissionModal } from './components/MissionModal';
 import { FounderStoryModal } from './components/FounderStoryModal';
 import { CharacterLibrary } from './components/CharacterLibrary';
-import { Leaderboard } from './components/Leaderboard';
 import { GuidedJourneysBoard } from './components/GuidedJourneys';
 import { CollaborativeHub } from './components/CollaborativeHub';
 import { CharacterBuilder } from './components/CharacterBuilder';
@@ -23,13 +22,40 @@ import { GUIDED_JOURNEYS } from './data/guidedJourneys';
 import { 
   ComicPanelData, BibleVersion, BIBLE_BOOKS, FREE_ALLOWED_BOOKS, BOOK_COLLECTIONS, UserStats, 
   QuizResponse, ArtStyle, CharacterProfile, UserTier, TIER_LIMITS, SUPPORTED_LANGUAGES, FREE_VERSIONS, EXPLORER_VERSIONS, FREE_STYLES, EXPLORER_STYLES,
-  JourneyProgress, StudyGroup, CustomHero, OfflinePack, CachedChapter, ChapterVerse, TextCatalogEntry, ReaderProfile
+  JourneyProgress, StudyGroup, CustomHero, OfflinePack, CachedChapter, ChapterVerse, TextCatalogEntry, ReaderProfile, ChapterProvenance,
+  PassagePointer, ReflectionEntry
 } from './types';
+import type { VerseSelection, CompanionText } from './components/ScriptureReader';
+import { sameChapter, versesOfKey } from './services/refs';
 import { getCacheKey, loadCachedChapter, saveCachedChapter } from './services/cacheService';
-import { loadChapterText, loadTextCatalog, discoverScriptures, loadScriptureData, extractVersesFromScripture, ScriptureEntry } from './services/textLibrary';
+import { loadChapter, prefetchNeighbours, loadTextCatalog, discoverScriptures, loadScriptureData, extractVersesFromScripture, ScriptureEntry, resolveBook } from './services/textLibrary';
+import { getStoreStats, ScriptureStoreStats } from './services/scriptureStore';
+import { getQuiz, QuizPick } from './services/quizBank';
+import { getChapterContext, ContextResult } from './services/contextBank';
+import { ChapterContextPanel } from './components/ChapterContextPanel';
+import { ScriptureReader } from './components/ScriptureReader';
+import { ScenesView } from './components/ScenesView';
+import { getScenes, ensureSceneImages, SceneResult } from './services/sceneBank';
+import { runtimeAIEnabled } from './services/runtimeConfig';
+import { loadManifest } from './services/manifestService';
 import { Tradition } from './services/types';
-import { TraditionSwitcher } from './components/TraditionSwitcher';
-import { BookSelector } from './components/BookSelector';
+import { ScriptureSourceBar } from './components/ScriptureSourceBar';
+import { PassagePicker } from './components/PassagePicker';
+import { CirclePill, MemberAvatar } from './components/CirclePill';
+import { StudyLibrary, OpenTarget } from './components/StudyLibrary';
+import {
+  UiProvider, useToast, useConfirm, Button, IconButton, Segmented, Popover, MenuItem, Select, Dialog, Drawer, TextArea, TextInput, Card, Eyebrow, Pill, EscapeLayer, cx,
+} from './components/ui/primitives';
+import { getLastRead, setLastRead as persistLastRead, LastRead, exportStudy, importStudy, downloadJson } from './services/studyLog';
+import { generateCircleCode, decodeInvite, inviteUrl, takeInviteFromUrl } from './services/circles';
+import { markChapterKey, migrateMarkStores, getVerseNotes } from './services/highlights';
+import { translationLanguage, TranslationMeta } from './services/types';
+import { AuthProvider, useAuth } from './components/AuthProvider';
+import { AuthModal } from './components/AuthModal';
+import { signOutUser, providerLabel } from './services/authService';
+import { ensureUserDocument, loadUserData, saveUserProfile, saveUserStats, mergeStats } from './services/userStore';
+import * as circleStore from './services/circleStore';
+import type { CircleActor, CircleFocus } from './services/circleStore';
 
 const DEFAULT_STATS: UserStats = {
   streak: 0,
@@ -51,7 +77,13 @@ const STORAGE_KEYS = {
   heroes: 'scriptureComix_customHeroes',
   activeHeroes: 'scriptureComix_activeHeroes',
   offline: 'scriptureComix_offlinePacks',
-  profile: 'scriptureComix_readerProfile'
+  profile: 'scriptureComix_readerProfile',
+  completed: 'scriptureComix_completed_v1',
+  companion: 'scriptureComix_companion_v1',
+};
+
+const DEFAULT_TRANSLATION: Record<Tradition, string> = {
+  protestant: 'nlt', catholic: 'drb', ethiopian: 'kjv', quran: 'yusuf-ali',
 };
 
 /** Safe localStorage read — returns fallback on missing, corrupt, or unparseable data */
@@ -77,7 +109,10 @@ function safeWrite(key: string, value: unknown): void {
 
 const HERO_LIMIT = 3;
 
+const ArrowRightIcon = () => <span aria-hidden="true">→</span>;
+
 const FALLBACK_VERSION_PRIORITY: BibleVersion[] = [
+  BibleVersion.NLT,
   BibleVersion.KJV,
   BibleVersion.NIV,
   BibleVersion.MSG
@@ -92,17 +127,49 @@ const findFallbackVersion = (available: Set<BibleVersion>): BibleVersion => {
 };
 
 const App: React.FC = () => {
+  const toast = useToast();
+  const confirm = useConfirm();
+  // Open where the reader left off; Genesis 1 only on a brand-new device.
+  const initialRead = useRef<LastRead | null>(getLastRead()).current;
+
   // Reading State
-  const [selectedBook, setSelectedBook] = useState('Genesis');
-  const [selectedChapter, setSelectedChapter] = useState(1);
+  const [selectedBook, setSelectedBook] = useState(initialRead?.bookName || 'Genesis');
+  const [selectedChapter, setSelectedChapter] = useState(initialRead?.chapter || 1);
   // `version` can be a builtin `BibleVersion` or a discovered scripture id string
   // in the form `SCRIPTURE::<id>`.
-  const [version, setVersion] = useState<string | BibleVersion>(BibleVersion.NIV);
+  const [version, setVersion] = useState<string | BibleVersion>(BibleVersion.NLT);
 
   // Tradition switcher state (Plan 01-04)
-  const [tradition, setTradition] = useState<Tradition>('protestant');
-  const [selectedBookSlug, setSelectedBookSlug] = useState<string | null>(null);
-  const [selectedTranslation, setSelectedTranslation] = useState<string | null>('kjv');
+  const [tradition, setTradition] = useState<Tradition>((initialRead?.tradition as Tradition) || 'protestant');
+  const [selectedBookSlug, setSelectedBookSlug] = useState<string | null>(initialRead?.bookSlug ?? 'genesis');
+  const [selectedTranslation, setSelectedTranslation] = useState<string | null>(initialRead?.translationId ?? 'nlt');
+  const [lastRead, setLastReadState] = useState<LastRead | null>(initialRead);
+  // A second language under every verse, remembered per canon ("scriptureComix_companion_v1")
+  const [companionByTradition, setCompanionByTradition] = useState<Record<string, string | null>>(() => safeRead<Record<string, string | null>>(STORAGE_KEYS.companion, {}));
+  const [companionText, setCompanionText] = useState<CompanionText | null>(null);
+  const [translationMeta, setTranslationMeta] = useState<{ primary: TranslationMeta | null; companion: TranslationMeta | null }>({ primary: null, companion: null });
+  // Chapters the reader has marked as read (key → ISO date), so XP is earned once
+  const [completedChapters, setCompletedChapters] = useState<Record<string, string>>(() => safeRead(STORAGE_KEYS.completed, {}));
+  const [showStudyLibrary, setShowStudyLibrary] = useState(false);
+  const [focusVerses, setFocusVerses] = useState<number[] | null>(null);
+  const focusVerseRef = useRef<number[] | null>(null);
+  focusVerseRef.current = focusVerses;
+  const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
+  const chapterLoads = useRef(0);
+  // "Share these verses with my circle" — a small dialog over the text, never a page change
+  const [shareSelection, setShareSelection] = useState<VerseSelection | null>(null);
+  const [shareDraft, setShareDraft] = useState('');
+  const [railDraft, setRailDraft] = useState('');
+  // The rail composer attaches the current selection unless the reader detaches it (×)
+  const [railAttach, setRailAttach] = useState(true);
+  // "For the circle": when on, changing chapter moves the circle's chapter too
+  const [followCircle, setFollowCircle] = useState(false);
+  // What the reader has selected right now (one verse or "4:1-10"), mirrored so circle notes can point at it
+  const [readerSelection, setReaderSelection] = useState<VerseSelection | null>(null);
+  // Where the current chapter's text came from (borrowed / AI-reconstructed verses) and
+  // how much scripture is stored permanently on this device
+  const [chapterProvenance, setChapterProvenance] = useState<ChapterProvenance | null>(null);
+  const [storeStats, setStoreStats] = useState<ScriptureStoreStats | null>(null);
   const [artStyle, setArtStyle] = useState<ArtStyle>(ArtStyle.COMIC_MODERN);
   const [language, setLanguage] = useState("English");
   
@@ -119,14 +186,113 @@ const App: React.FC = () => {
   
   // Features State
   const [stats, setStats] = useState<UserStats>(DEFAULT_STATS);
-  const [dailyChallenge, setDailyChallenge] = useState<{book: string, chapter: number} | null>(null);
   const [showNotes, setShowNotes] = useState(false);
-  const [notes, setNotes] = useState<{[key: string]: string}>({}); 
+  // Everything that is persisted is read once, up front. Reading it in an effect
+  // raced the write-back effects (in StrictMode the write of an empty value won)
+  // and silently emptied notes, circles and journeys on every reload.
+  const [notes, setNotes] = useState<{[key: string]: string}>(() => safeRead<Record<string, string>>(STORAGE_KEYS.notes, {}));
   const [currentNote, setCurrentNote] = useState('');
   
   // Modals & Overlays
   const [quizData, setQuizData] = useState<QuizResponse | null>(null);
+  const [quizPick, setQuizPick] = useState<QuizPick | null>(null);
   const [showQuiz, setShowQuiz] = useState(false);
+  const [chapterContext, setChapterContext] = useState<ContextResult | null>(null);
+  const [contextLoading, setContextLoading] = useState(false);
+  // Read = flowing text like a printed Bible; Study = verse by verse with notes,
+  // comparisons and the neutral context; Comic = the illustrated version.
+  const [readerMode, setReaderMode] = useState<'read' | 'study' | 'comic'>(() =>
+    safeRead<'read' | 'study' | 'comic'>('scriptureComix_readerMode', 'read')
+  );
+  const [chapterCount, setChapterCount] = useState<number>(1);
+  // The order of books in the current canon, so "next" can cross into the next book or surah
+  const [bookOrder, setBookOrder] = useState<{ slug: string; displayName: string; chapters: number }[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    loadManifest(tradition)
+      .then(m => { if (!cancelled) setBookOrder(m.books.map(b => ({ slug: b.slug, displayName: b.displayName, chapters: tradition === 'quran' ? 1 : b.chapters.length }))); })
+      .catch(() => { if (!cancelled) setBookOrder([]); });
+    return () => { cancelled = true; };
+  }, [tradition]);
+  // Journeys, study circle and heroes live in a slide-over, not in the reading flow
+  const [communityDrawer, setCommunityDrawer] = useState<'circle' | 'journeys' | 'forge' | null>(null);
+  const [showCommunityMenu, setShowCommunityMenu] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [nameDraft, setNameDraft] = useState('');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user: authUser, configured: authConfigured, loading: authLoading } = useAuth();
+  // Cloud sync only starts once this device's data has been merged with the account's.
+  const [cloudReadyFor, setCloudReadyFor] = useState<string | null>(null);
+  // Illustrated edition: one picture per scene, generated once and shipped
+  const [sceneResult, setSceneResult] = useState<SceneResult | null>(null);
+  const [scenesLoading, setScenesLoading] = useState(false);
+  const [illustrating, setIllustrating] = useState(false);
+  const sceneRunKey = useRef('');
+
+  /**
+   * Load (and, when allowed or forced by the reader, draw) the scenes of a
+   * chapter. Only the latest run for a chapter may touch state, and the final
+   * state is re-read from the store so nothing drawn is ever lost.
+   */
+  const runScenesFor = async (
+    r: { verses: ChapterVerse[]; translationId?: string; bookSlug?: string; bookName: string; chapter: number },
+    force: boolean
+  ) => {
+    if (!r.verses.length) return;
+    const req = {
+      tradition,
+      translationId: r.translationId || selectedTranslation || 'default',
+      bookSlug: r.bookSlug || selectedBookSlug || selectedBook,
+      bookName: r.bookName,
+      chapter: r.chapter,
+      verses: r.verses,
+      isQuran: tradition === 'quran',
+      style: artStyle,
+    };
+    const key = `${req.tradition}/${req.translationId}/${req.bookSlug}/${req.chapter}/${artStyle}/${force ? 'force' : 'auto'}`;
+    sceneRunKey.current = key;
+    const alive = () => sceneRunKey.current === key;
+    const allowAI = force ? true : undefined;
+    setScenesLoading(true);
+    try {
+      let res = await getScenes({ ...req, allowAI });
+      if (!alive()) return;
+      setSceneResult(res);
+      setScenesLoading(false);
+      if (res.status === 'ready' && res.missingImages > 0 && (force || runtimeAIEnabled())) {
+        setIllustrating(true);
+        await ensureSceneImages({ ...req, allowAI }, (scene, idx) => {
+          if (!alive()) return;
+          setSceneResult(prev => prev ? { ...prev, scenes: prev.scenes.map((s, i) => (i === idx ? scene : s)), missingImages: Math.max(0, prev.missingImages - 1) } : prev);
+        });
+        if (!alive()) return;
+        res = await getScenes({ ...req, allowAI: false });
+        if (alive()) setSceneResult(res);
+      }
+    } catch (err) {
+      console.warn('Scenes failed', err);
+      if (alive()) setSceneResult({ scenes: [], planSource: null, status: 'unavailable', missingImages: 0 });
+    } finally {
+      if (alive()) {
+        setScenesLoading(false);
+        setIllustrating(false);
+      }
+    }
+  };
+
+  /** Reader-triggered: draw this chapter now, even in production. */
+  const illustrateCurrentChapter = () => {
+    if (!chapterText || !chapterText.length) return;
+    runScenesFor(
+      { verses: chapterText, translationId: chapterTextSource?.versions?.[0], bookSlug: selectedBookSlug || undefined, bookName: selectedBook, chapter: tradition === 'quran' ? 1 : selectedChapter },
+      true
+    );
+  };
+  const switchMode = (m: 'read' | 'study' | 'comic', scrollTop: boolean = true) => {
+    setReaderMode(m);
+    safeWrite('scriptureComix_readerMode', m);
+    if (scrollTop) window.scrollTo({ top: 0, behavior: 'auto' });
+  };
   const [showMembershipModal, setShowMembershipModal] = useState(false);
   const [showUrgentModal, setShowUrgentModal] = useState(false);
   const [showMissionModal, setShowMissionModal] = useState(false);
@@ -149,24 +315,31 @@ const App: React.FC = () => {
   const [showCharacters, setShowCharacters] = useState(false);
   
   // Journeys & Collaboration
-  const [journeyProgress, setJourneyProgress] = useState<Record<string, JourneyProgress>>({});
-  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(null);
+  const [journeyProgress, setJourneyProgress] = useState<Record<string, JourneyProgress>>(() => safeRead<Record<string, JourneyProgress>>(STORAGE_KEYS.journeys, {}));
+  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(() => { try { return localStorage.getItem(STORAGE_KEYS.activeJourney); } catch { return null; } });
   const [pendingJourneyAction, setPendingJourneyAction] = useState<{ journeyId: string; chapterIndex: number } | null>(null);
-  const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [studyGroups, setStudyGroups] = useState<StudyGroup[]>(() => safeRead<StudyGroup[]>(STORAGE_KEYS.groups, []));
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => safeRead<StudyGroup[]>(STORAGE_KEYS.groups, [])[0]?.id ?? null);
   const [pendingGroupSync, setPendingGroupSync] = useState<{ groupId: string } | null>(null);
-  const [profile, setProfile] = useState<ReaderProfile>({
-    displayName: 'Pilgrim',
-    faithTradition: 'Curious',
-    exploreLevel: 'Medium'
+  // Signed-in readers: circles live in Firestore and sync between members and devices.
+  const [cloudGroups, setCloudGroups] = useState<StudyGroup[]>([]);
+  const [cloudReflections, setCloudReflections] = useState<ReflectionEntry[]>([]);
+  const [pendingInvite, setPendingInvite] = useState<string | null>(null);
+  const [profile, setProfile] = useState<ReaderProfile>(() => {
+    const saved = safeRead<Partial<ReaderProfile> | null>(STORAGE_KEYS.profile, null);
+    return {
+      displayName: saved?.displayName || 'Pilgrim',
+      faithTradition: saved?.faithTradition || 'Curious',
+      exploreLevel: saved?.exploreLevel || 'Medium',
+    };
   });
 
   // Custom Heroes
-  const [customHeroes, setCustomHeroes] = useState<CustomHero[]>([]);
-  const [activeHeroIds, setActiveHeroIds] = useState<string[]>([]);
+  const [customHeroes, setCustomHeroes] = useState<CustomHero[]>(() => safeRead<CustomHero[]>(STORAGE_KEYS.heroes, []));
+  const [activeHeroIds, setActiveHeroIds] = useState<string[]>(() => safeRead<string[]>(STORAGE_KEYS.activeHeroes, []));
 
   // Offline Packs
-  const [offlinePacks, setOfflinePacks] = useState<OfflinePack[]>([]);
+  const [offlinePacks, setOfflinePacks] = useState<OfflinePack[]>(() => safeRead<OfflinePack[]>(STORAGE_KEYS.offline, []));
 
   // Native Text Library
   const [chapterText, setChapterText] = useState<ChapterVerse[] | null>(null);
@@ -175,7 +348,6 @@ const App: React.FC = () => {
   const [chapterTextError, setChapterTextError] = useState<string | null>(null);
 
   // UI Overlays
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [localVersionSet, setLocalVersionSet] = useState<Set<BibleVersion>>(new Set());
   
   // Scripture Discovery & Selection
@@ -191,29 +363,8 @@ const App: React.FC = () => {
       if (typeof savedStats.dailyAiUsage === 'undefined') savedStats.dailyAiUsage = 0;
       setStats(savedStats);
     }
-    const savedNotes = safeRead<Record<string, string>>(STORAGE_KEYS.notes, {});
-    if (Object.keys(savedNotes).length > 0) setNotes(savedNotes);
-    const savedJourneys = safeRead<Record<string, any>>(STORAGE_KEYS.journeys, {});
-    if (Object.keys(savedJourneys).length > 0) setJourneyProgress(savedJourneys);
-    const savedActiveJourney = localStorage.getItem(STORAGE_KEYS.activeJourney);
-    if (savedActiveJourney) setActiveJourneyId(savedActiveJourney);
-    const savedGroups = safeRead<any[]>(STORAGE_KEYS.groups, []);
-    if (savedGroups.length > 0) setStudyGroups(savedGroups);
-    const savedHeroes = safeRead<any[]>(STORAGE_KEYS.heroes, []);
-    if (savedHeroes.length > 0) setCustomHeroes(savedHeroes);
-    const savedActiveHeroes = safeRead<string[]>(STORAGE_KEYS.activeHeroes, []);
-    if (savedActiveHeroes.length > 0) setActiveHeroIds(savedActiveHeroes);
-    const savedOfflinePacks = safeRead<any[]>(STORAGE_KEYS.offline, []);
-    if (savedOfflinePacks.length > 0) setOfflinePacks(savedOfflinePacks);
-    const savedProfile = safeRead<any>(STORAGE_KEYS.profile, null);
-    if (savedProfile && savedProfile.displayName) {
-      setProfile({
-        displayName: savedProfile.displayName,
-        faithTradition: savedProfile.faithTradition || 'Curious',
-        exploreLevel: savedProfile.exploreLevel || 'Medium'
-      });
-    }
-    
+    const savedProfile = safeRead<Partial<ReaderProfile> | null>(STORAGE_KEYS.profile, null);
+
     // Date Logic for Streak and AI Usage Reset
     const now = new Date();
     const today = now.toISOString().split('T')[0];
@@ -245,22 +396,69 @@ const App: React.FC = () => {
       return updated;
     });
 
-    const randomBook = BIBLE_BOOKS[Math.floor(Math.random() * 50)]; // Limit random to standard books roughly
-    const randomChapter = Math.floor(Math.random() * 20) + 1;
-    setDailyChallenge({ book: randomBook, chapter: randomChapter });
+    // Marks made before they were owned by the verse are folded into the new shape once
+    migrateMarkStores();
 
-    // --- URGENT DONATION MODAL LOGIC (FIRST VISIT) ---
-    const hasSeenDonation = safeRead<string | null>('scriptureComix_hasSeenUrgentDonation', null);
-    if (!hasSeenDonation) {
-       setTimeout(() => {
-          const s = safeRead<any>(STORAGE_KEYS.stats, {});
-          if (!s.tier || s.tier === UserTier.FREE) {
-            setShowUrgentModal(true);
-            safeWrite('scriptureComix_hasSeenUrgentDonation', 'true');
-          }
-       }, 2500);
-    }
+    // A circle invite in the URL (?circle=…) joins it and opens the circle once we know who the reader is
+    const invite = takeInviteFromUrl();
+    if (invite) setPendingInvite(invite);
   }, []);
+
+  useEffect(() => {
+    if (!pendingInvite || authLoading) return;
+    const invite = pendingInvite;
+    setPendingInvite(null);
+    joinFromInvite(invite).then(ok => {
+      if (ok) setCommunityDrawer('circle');
+      else toast({ title: 'That invite could not be read', description: 'Ask the person who sent it for a fresh link.', tone: 'error' });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingInvite, authLoading]);
+
+  // --- CLOUD CIRCLES ---
+  const circleActor: CircleActor | null = authUser
+    ? { uid: authUser.uid, alias: profile.displayName.trim() || authUser.displayName || 'Member' }
+    : null;
+
+  useEffect(() => {
+    if (!authUser) { setCloudGroups([]); return; }
+    return circleStore.subscribeMyCircles(authUser.uid, setCloudGroups);
+  }, [authUser]);
+
+  const selectedCloudGroup = authUser ? cloudGroups.find(g => g.id === selectedGroupId) ?? null : null;
+  const selectedCloudSessionId = selectedCloudGroup?.currentSessionId ?? null;
+  useEffect(() => {
+    if (!selectedCloudGroup || !selectedCloudSessionId) { setCloudReflections([]); return; }
+    return circleStore.subscribeReflections(selectedCloudGroup.id, selectedCloudSessionId, setCloudReflections);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser, selectedGroupId, selectedCloudSessionId]);
+
+  // When the cloud list arrives, make sure something sensible is selected.
+  useEffect(() => {
+    if (!authUser || cloudGroups.length === 0) return;
+    if (!cloudGroups.some(g => g.id === selectedGroupId)) setSelectedGroupId(cloudGroups[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authUser, cloudGroups]);
+
+  /** The circles the reader sees: cloud when signed in, this device otherwise. */
+  const groups: StudyGroup[] = useMemo(() => {
+    if (!authUser) return studyGroups;
+    return cloudGroups.map(g => (g.id === selectedGroupId ? { ...g, reflections: cloudReflections } : g));
+  }, [authUser, studyGroups, cloudGroups, selectedGroupId, cloudReflections]);
+
+  const circleFail = (title: string) => (err: unknown) => {
+    console.warn('[circles]', title, err);
+    toast({ title, description: err instanceof Error ? err.message : 'Check your connection and try again.', tone: 'error' });
+  };
+
+  // Back to the top whenever the passage changes — a new chapter starts at verse 1
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }, [selectedBook, selectedChapter, tradition]);
+
+  useEffect(() => {
+    safeWrite(STORAGE_KEYS.completed, completedChapters);
+  }, [completedChapters]);
 
   useEffect(() => {
     safeWrite(STORAGE_KEYS.notes, notes);
@@ -301,6 +499,67 @@ const App: React.FC = () => {
       localStorage.removeItem(STORAGE_KEYS.profile);
     }
   }, [profile]);
+
+  // --- FIREBASE SYNC ---
+  // On sign-in: register the account doc, then fold cloud data into this device's.
+  useEffect(() => {
+    if (!authUser) { setCloudReadyFor(null); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        await ensureUserDocument(authUser);
+        const cloud = await loadUserData(authUser.uid);
+        if (cancelled) return;
+        setStats(prev => {
+          const merged = mergeStats(prev, cloud.stats);
+          safeWrite(STORAGE_KEYS.stats, merged);
+          return merged;
+        });
+        setProfile(prev => {
+          const cloudName = cloud.profile?.displayName?.trim();
+          const localNamed = prev.displayName.trim() && prev.displayName.trim() !== 'Pilgrim';
+          return {
+            displayName: localNamed ? prev.displayName : (cloudName || authUser.displayName || prev.displayName),
+            faithTradition: cloud.profile?.faithTradition || prev.faithTradition,
+            exploreLevel: cloud.profile?.exploreLevel || prev.exploreLevel,
+          };
+        });
+        setCloudReadyFor(authUser.uid);
+      } catch (err) {
+        console.warn('[firebase] could not load account data', err);
+        if (!cancelled) setCloudReadyFor(authUser.uid);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authUser]);
+
+  // After the merge, mirror stats and profile to Firestore (debounced).
+  useEffect(() => {
+    if (!authUser || cloudReadyFor !== authUser.uid) return;
+    const t = setTimeout(() => {
+      saveUserStats(authUser.uid, stats).catch(err => console.warn('[firebase] stats sync failed', err));
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [authUser, cloudReadyFor, stats]);
+
+  useEffect(() => {
+    if (!authUser || cloudReadyFor !== authUser.uid) return;
+    const t = setTimeout(() => {
+      saveUserProfile(authUser.uid, profile).catch(err => console.warn('[firebase] profile sync failed', err));
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [authUser, cloudReadyFor, profile]);
+
+  const handleSignOut = async () => {
+    setShowProfileMenu(false);
+    try {
+      await signOutUser();
+      toast({ title: 'Signed out', description: 'Your reading stays on this device. Sign in again to sync.' });
+    } catch (err) {
+      console.warn('[firebase] sign-out failed', err);
+      toast({ title: 'Could not sign out', description: 'Check your connection and try again.' });
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -411,32 +670,100 @@ const App: React.FC = () => {
       return () => { cancelled = true; };
     }
 
-    // Otherwise, load from standard version
-    // If `version` is a discovered SCRIPTURE:: id, fall back to a builtin version
-    // for the loadChapterText path (we only reach this when selectedScripture is not set).
-    const effectiveVersion = (typeof version === 'string' && version.startsWith('SCRIPTURE::'))
-      ? findFallbackVersion(localVersionSet)
-      : (version as BibleVersion);
-
-    loadChapterText(effectiveVersion, selectedBook, selectedChapter)
+    // Otherwise, load through the permanent scripture store. Books are fetched
+    // once per device; missing verses are borrowed or reconstructed and kept.
+    const bookRef = selectedBookSlug || selectedBook;
+    // Reading is never slowed by generation: stored text shows at once and any
+    // gap repair runs behind it, swapping the completed chapter in when done.
+    loadChapter(tradition, selectedTranslation, bookRef, selectedChapter, { repair: 'background' })
       .then(result => {
         if (cancelled) return;
         if (result) {
+          const loadContextFor = (r: typeof result) => {
+            if (!r.verses.length) return;
+            runScenesFor({ verses: r.verses, translationId: r.translationId, bookSlug: r.bookSlug || bookRef, bookName: r.bookDisplayName || selectedBook, chapter: r.chapter || selectedChapter }, false);
+            setContextLoading(true);
+            getChapterContext({
+              tradition,
+              translationId: r.translationId || selectedTranslation || 'default',
+              bookSlug: r.bookSlug || bookRef,
+              bookName: r.bookDisplayName || selectedBook,
+              chapter: r.chapter || selectedChapter,
+              verses: r.verses,
+              isQuran: tradition === 'quran',
+            })
+              .then(ctx => { if (!cancelled) setChapterContext(ctx); })
+              .catch(() => { if (!cancelled) setChapterContext({ context: null, source: null, status: 'unavailable' }); })
+              .finally(() => { if (!cancelled) setContextLoading(false); });
+          };
+
           setChapterText(result.verses);
           setChapterTextSource(result.entry);
-          setChapterTextError(null);
+          setChapterProvenance(result.provenance ?? null);
+          setChapterTextError(result.verses.length ? null : 'Preparing this chapter for the first time…');
+          // The text just changed under the reader: start them at verse 1 (unless a verse jump is pending)
+          if (!focusVerseRef.current?.length) requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'auto' }));
+          if (result.verses.length) {
+            const lr = {
+              tradition,
+              bookSlug: result.bookSlug || bookRef,
+              bookName: result.bookDisplayName || selectedBook,
+              chapter: result.chapter || selectedChapter,
+              translationId: result.translationId || selectedTranslation,
+            };
+            persistLastRead(lr);
+            setLastReadState({ ...lr, at: new Date().toISOString() });
+            // Ask for support only after the reader has actually read a few chapters
+            chapterLoads.current += 1;
+            if (chapterLoads.current === 3 && !safeRead<string | null>('scriptureComix_hasSeenUrgentDonation', null)) {
+              const s = safeRead<any>(STORAGE_KEYS.stats, {});
+              if (!s.tier || s.tier === UserTier.FREE) {
+                setShowUrgentModal(true);
+                safeWrite('scriptureComix_hasSeenUrgentDonation', 'true');
+              }
+            }
+          }
+          // A new chapter means a new quiz bank entry and a new study context
+          setQuizData(null);
+          setQuizPick(null);
+          setShowQuiz(false);
+          setChapterContext(null);
+          setSceneResult(null);
+          loadContextFor(result);
+
+          if (result.pending) {
+            result.pending.then(repaired => {
+              if (cancelled || !repaired) return;
+              setChapterText(repaired.verses);
+              setChapterProvenance(repaired.provenance ?? null);
+              setChapterTextError(null);
+              if (!result.verses.length) loadContextFor(repaired);
+              getStoreStats().then(s => { if (!cancelled) setStoreStats(s); }).catch(() => {});
+            });
+          }
+          if (result.bookSlug && result.bookSlug !== selectedBookSlug) setSelectedBookSlug(result.bookSlug);
+          if (result.bookDisplayName && result.bookDisplayName !== selectedBook) setSelectedBook(result.bookDisplayName);
+          loadManifest(tradition)
+            .then(m => { const b = m.books.find(x => x.slug === result.bookSlug); if (!cancelled && b) setChapterCount(tradition === 'quran' ? 1 : b.chapters.length); })
+            .catch(() => {});
+          // Warm the neighbouring books while the reader is busy with this one
+          const idle = (window as any).requestIdleCallback || ((fn: () => void) => setTimeout(fn, 800));
+          idle(() => prefetchNeighbours(tradition, result.translationId || '', result.bookSlug || ''));
         } else {
           setChapterText(null);
           setChapterTextSource(null);
-          setChapterTextError('This translation is not cached locally yet.');
+          setChapterProvenance(null);
+          setChapterTextError(`${bookRef} ${selectedChapter} is not in this canon. Pick a book above.`);
         }
+        getStoreStats().then(s => { if (!cancelled) setStoreStats(s); }).catch(() => {});
       })
       .catch(err => {
         console.warn('Chapter text load failed', err);
         if (cancelled) return;
         setChapterText(null);
         setChapterTextSource(null);
-        setChapterTextError('Unable to load native text.');
+        setChapterProvenance(null);
+        setChapterTextError('Unable to load scripture text.');
       })
       .finally(() => {
         if (!cancelled) setIsChapterTextLoading(false);
@@ -444,7 +771,7 @@ const App: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [selectedBook, selectedChapter, version, selectedScripture, scriptureData]);
+  }, [selectedBook, selectedBookSlug, selectedChapter, tradition, selectedTranslation, selectedScripture, scriptureData]);
 
   // --- MONETIZATION HANDLERS ---
   const handleDonation = (amount: number, isMonthly: boolean) => {
@@ -453,7 +780,7 @@ const App: React.FC = () => {
     if (amount >= 5) {
        handleUpgrade(UserTier.EXPLORER);
     } else {
-       alert("Thank you for your support! You are helping us stay online.");
+       toast({ title: 'Thank you for your support', description: 'You are helping keep this free for everyone.' });
        setShowUrgentModal(false);
     }
   };
@@ -463,7 +790,8 @@ const App: React.FC = () => {
     setStats(newStats);
     safeWrite(STORAGE_KEYS.stats, newStats);
     setShowMembershipModal(false);
-    alert(`Welcome to ${tier}! Thank you for your support.`);
+    setShowUrgentModal(false);
+    toast({ title: `Welcome to the ${tier}`, description: 'Thank you for your support.' });
   };
 
   const checkFeatureLock = (feature: 'art' | 'book' | 'version' | 'ai' | 'download' | 'language', value?: any): boolean => {
@@ -538,7 +866,8 @@ const App: React.FC = () => {
     // 6. LANGUAGES
     if (feature === 'language') {
       if (tier === UserTier.SCHOLAR) return true;
-      if (value === 'English') return true;
+      // English and isiZulu are free: the isiZulu Bible is public domain.
+      if (value === 'English' || value === 'Zulu') return true;
       // Maybe Explorer gets a few, but Scholar gets ALL. 
       // For now, let's keep languages open for Explorer or just Scholar.
       // Prompt says Scholar gets "ALL Languages".
@@ -582,9 +911,12 @@ const App: React.FC = () => {
     if (!chapter) return;
     setActiveJourneyId(journeyId);
     setPendingJourneyAction({ journeyId, chapterIndex });
+    // Journeys are in the Protestant canon; open the chapter to read, not to generate a comic
+    if (tradition !== 'protestant') { setTradition('protestant'); setSelectedTranslation(DEFAULT_TRANSLATION.protestant); }
+    setSelectedBookSlug(null);
     setSelectedBook(chapter.book);
     setSelectedChapter(chapter.chapter);
-    handleGenerate(undefined, { book: chapter.book, chapter: chapter.chapter });
+    switchMode('read');
   };
 
   const handleJourneyResume = (journeyId: string) => {
@@ -625,12 +957,109 @@ const App: React.FC = () => {
       const merged = { ...prev, [journeyId]: updated };
       const finished = updated.completed.length === journey.chapters.length;
       if (finished) {
-        alert(`Journey completed! You earned the ${journey.badge} badge.`);
+        setTimeout(() => toast({ title: `You finished ${journey.title}`, description: `You earned the ${journey.badge} badge.`, duration: 7000 }), 0);
       }
       return merged;
     });
     const reward = journey.chapters[chapterIndex]?.xpReward || 0;
     awardXp(reward);
+  };
+
+  /** The key under which "I read this" is remembered for the open chapter. */
+  const currentChapterKey = `${tradition}/${selectedBookSlug || selectedBook}/${tradition === 'quran' ? 1 : selectedChapter}`;
+  const currentChapterDone = !!completedChapters[currentChapterKey];
+
+  /** Reader says "I have read this chapter": counts once, pays journey and circle steps. */
+  const markChapterRead = () => {
+    if (currentChapterDone) return;
+    setCompletedChapters(prev => ({ ...prev, [currentChapterKey]: new Date().toISOString() }));
+    setStats(prev => {
+      const updated = { ...prev, xp: prev.xp + 50, chaptersRead: prev.chaptersRead + 1 };
+      safeWrite(STORAGE_KEYS.stats, updated);
+      return updated;
+    });
+    let msg = `${selectedBook}${tradition === 'quran' ? '' : ` ${selectedChapter}`} marked as read · +50 XP`;
+    if (pendingJourneyAction) {
+      const j = GUIDED_JOURNEYS.find(x => x.id === pendingJourneyAction.journeyId);
+      const ch = j?.chapters[pendingJourneyAction.chapterIndex];
+      if (ch && ch.book === selectedBook && ch.chapter === selectedChapter) {
+        completeJourneyChapter(pendingJourneyAction.journeyId, pendingJourneyAction.chapterIndex);
+        setPendingJourneyAction(null);
+        msg = `Step done on ${j!.title} · +${50 + (ch.xpReward || 0)} XP`;
+      }
+    }
+    if (pendingGroupSync) {
+      acknowledgeGroupSync(pendingGroupSync.groupId);
+      setPendingGroupSync(null);
+    }
+    toast({ title: msg });
+  };
+
+  /**
+   * Open a passage from anywhere (study library, circle, journey). When the
+   * target does not say which canon it belongs to, find the first one that
+   * has the book — starting with the one the reader is in.
+   */
+  const openPassage = async (t: OpenTarget) => {
+    let targetTradition = (t.tradition as Tradition | undefined) ?? null;
+    // Keep the slug stable when we already know it: flipping it to null would reload
+    // the same chapter under a new key and wipe the reader's selection.
+    let slug = t.bookSlug
+      ?? ((!targetTradition || targetTradition === tradition) ? bookOrder.find(b => b.displayName === t.bookName || b.slug === t.bookName)?.slug ?? null : null);
+    if (!targetTradition) {
+      const order: Tradition[] = [tradition, 'protestant', 'catholic', 'ethiopian', 'quran'];
+      for (const tr of order) {
+        try {
+          const m = await loadManifest(tr);
+          const found = resolveBook(m, slug || t.bookName);
+          if (found) { targetTradition = tr; slug = found.slug; break; }
+        } catch { /* try the next canon */ }
+      }
+      if (!targetTradition) {
+        toast({ title: `Could not find ${t.bookName}`, description: 'It is not in any canon on this device.', tone: 'error' });
+        return;
+      }
+    }
+    if (targetTradition !== tradition) {
+      setTradition(targetTradition);
+      setSelectedTranslation(t.translationId || DEFAULT_TRANSLATION[targetTradition] || null);
+    } else if (t.translationId) {
+      setSelectedTranslation(t.translationId);
+    }
+    setSelectedBookSlug(slug);
+    setSelectedBook(t.bookName);
+    setSelectedChapter(t.chapter);
+    if (t.mode) switchMode(t.mode);
+    setFocusVerses(t.verses?.length ? t.verses : t.verse != null ? [t.verse] : null);
+    setShowStudyLibrary(false);
+    setCommunityDrawer(null);
+  };
+
+  /** Jump to a passage a circle reflection points at. */
+  const openPointer = (p: PassagePointer) => {
+    void openPassage({ tradition: p.tradition, bookName: p.book, chapter: p.chapter, verses: p.verses, mode: 'read' });
+  };
+
+  const handleExportStudy = () => {
+    downloadJson(`scripturecomix-study-${new Date().toISOString().slice(0, 10)}.json`, exportStudy());
+    toast({ title: 'Study file saved', description: 'Keep it somewhere safe, or load it on another device.' });
+  };
+
+  const handleImportStudy = async (file: File) => {
+    try {
+      const json = JSON.parse(await file.text());
+      const ok = await confirm({
+        title: 'Load this study file?',
+        description: 'Highlights, notes, bookmarks, circles and progress in the file will replace the ones on this device.',
+        confirmLabel: 'Load it',
+      });
+      if (!ok) return;
+      const n = importStudy(json);
+      toast({ title: 'Study loaded', description: `${n} parts restored. Reloading…` });
+      setTimeout(() => window.location.reload(), 900);
+    } catch {
+      toast({ title: 'That is not a study file', description: 'Choose a file saved from “My study”.', tone: 'error' });
+    }
   };
 
   const applyChapterResult = (payload: CachedChapter) => {
@@ -659,100 +1088,209 @@ const App: React.FC = () => {
     }
   };
 
-  const generateGroupCode = () => {
-    if (typeof crypto !== 'undefined' && 'getRandomValues' in crypto) {
-      const bytes = new Uint8Array(4);
-      crypto.getRandomValues(bytes);
-      return Array.from(bytes)
-        .map(b => (b % 36).toString(36))
-        .join('')
-        .toUpperCase()
-        .slice(0, 6);
+  const currentCircleFocus = (): CircleFocus => {
+    const chapter = tradition === 'quran' ? 1 : selectedChapter;
+    const sel = selectionPointer();
+    if (sel && sel.book === selectedBook && sel.chapter === chapter) {
+      return { tradition, book: selectedBook, chapter, verses: sel.verses, label: sel.label };
     }
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+    return { tradition, book: selectedBook, chapter, verses: [], label: `${selectedBook}${tradition === 'quran' ? '' : ` ${chapter}`}` };
   };
 
   const handleCreateGroup = (name: string, focus: string) => {
+    if (circleActor) {
+      circleStore.createCircle(circleActor, name, focus, currentCircleFocus())
+        .then(id => { setSelectedGroupId(id); toast({ title: `${name} is ready`, description: 'Copy the invite so others can read along. It syncs for everyone who signs in.' }); })
+        .catch(circleFail('Could not create the circle'));
+      return;
+    }
     const alias = profile.displayName.trim() || 'You';
     const newGroup: StudyGroup = {
       id: `group-${Date.now()}`,
       name,
       focus,
-      code: generateGroupCode(),
-      members: [alias, 'Guest Chaplain'],
+      code: generateCircleCode(),
+      members: [alias],
       createdAt: new Date().toISOString(),
+      tradition,
+      targetBook: selectedBook,
+      targetChapter: tradition === 'quran' ? 1 : selectedChapter,
       reflections: [{
         id: `reflection-${Date.now()}`,
         author: 'System',
-        text: `${alias} launched this circle.`,
+        text: `${alias} started this circle on ${selectedBook}${tradition === 'quran' ? '' : ` ${selectedChapter}`}.`,
         createdAt: new Date().toISOString()
       }]
     };
     setStudyGroups(prev => [...prev, newGroup]);
     setSelectedGroupId(newGroup.id);
+    toast({ title: `${name} is ready`, description: 'Copy the invite so others can read along.' });
   };
 
   const handleSelectGroup = (groupId: string) => {
     setSelectedGroupId(groupId);
-    const group = studyGroups.find(g => g.id === groupId);
-    if (group?.targetBook && group.targetChapter) {
-      setSelectedBook(group.targetBook);
-      setSelectedChapter(group.targetChapter);
+  };
+
+  /** Join from an invite string or link. Resolves false when it cannot be read or found. */
+  const joinFromInvite = async (invite: string, aliasOverride?: string): Promise<boolean> => {
+    const decoded = decodeInvite(invite);
+    if (!decoded) return false;
+    if (circleActor) {
+      try {
+        const { id, group } = await circleStore.joinCircleByCode(circleActor, decoded.code);
+        setSelectedGroupId(id);
+        if (group.targetBook && group.targetChapter) {
+          void openPassage({ tradition: group.tradition, bookName: group.targetBook, chapter: group.targetChapter, mode: 'read' });
+        }
+        toast({ title: `You joined ${group.name}`, description: group.targetLabel ? `Everyone is reading ${group.targetLabel}.` : undefined });
+        return true;
+      } catch (err) {
+        if (err instanceof circleStore.CircleNotFoundError) return false;
+        circleFail('Could not join the circle')(err);
+        return false;
+      }
+    }
+    const alias = (aliasOverride ?? profile.displayName).trim() || 'You';
+    setStudyGroups(prev => {
+      const existing = prev.find(g => g.code === decoded.code);
+      if (existing) {
+        setSelectedGroupId(existing.id);
+        return prev.map(g => g.id === existing.id
+          ? { ...g, tradition: decoded.tradition ?? g.tradition, targetBook: decoded.targetBook ?? g.targetBook, targetChapter: decoded.targetChapter ?? g.targetChapter, members: g.members.includes(alias) ? g.members : [...g.members, alias] }
+          : g);
+      }
+      const joined: StudyGroup = {
+        id: `group-${decoded.code}`,
+        name: decoded.name,
+        focus: decoded.focus,
+        code: decoded.code,
+        members: [alias],
+        createdAt: new Date().toISOString(),
+        tradition: decoded.tradition,
+        targetBook: decoded.targetBook,
+        targetChapter: decoded.targetChapter,
+        reflections: [{ id: `reflection-${Date.now()}`, author: 'System', text: `${alias} joined from an invite.`, createdAt: new Date().toISOString() }],
+      };
+      setSelectedGroupId(joined.id);
+      return [...prev, joined];
+    });
+    if (decoded.targetBook && decoded.targetChapter) {
+      void openPassage({ tradition: decoded.tradition, bookName: decoded.targetBook, chapter: decoded.targetChapter, mode: 'read' });
+    }
+    toast({ title: `You joined ${decoded.name}`, description: decoded.targetBook ? `Everyone is reading ${decoded.targetBook} ${decoded.targetChapter}.` : undefined });
+    return true;
+  };
+
+  const handleJoinGroup = (invite: string) => joinFromInvite(invite);
+
+  const handleInviteGroup = async (groupId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    const url = inviteUrl(group);
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: 'Invite link copied', description: 'Send it to anyone. Opening it joins the circle on their device.' });
+    } catch {
+      toast({ title: 'Copy this invite', description: url, duration: 15000, tone: 'info' });
     }
   };
 
-  const handleJoinGroup = (code: string) => {
-    const alias = profile.displayName.trim() || 'You';
-    const existing = studyGroups.find(group => group.code === code);
-    if (existing) {
-      setSelectedGroupId(existing.id);
-      if (!existing.members.includes(alias)) {
-        setStudyGroups(prev => prev.map(group => group.id === existing.id ? { ...group, members: [...group.members, alias] } : group));
-      }
+  const handleSetGroupTarget = (groupId: string, book: string, chapter: number, quiet = false) => {
+    const label = `${book}${tradition === 'quran' ? '' : ` ${chapter}`}`;
+    if (circleActor) {
+      const focus: CircleFocus = book === selectedBook && chapter === (tradition === 'quran' ? 1 : selectedChapter)
+        ? currentCircleFocus()
+        : { tradition, book, chapter, verses: [], label };
+      circleStore.setCircleFocus(circleActor, groupId, focus)
+        .then(() => { if (!quiet) toast({ title: `Circle set to ${focus.label}`, description: 'Everyone in the circle sees it now.' }); })
+        .catch(circleFail('Could not move the circle'));
       return;
     }
-    const remoteGroup: StudyGroup = {
-      id: `group-${Date.now()}`,
-      name: `Partner Hub ${code}`,
-      focus: 'Remote collaboration',
-      code,
-      members: [alias, 'Remote Host'],
-      createdAt: new Date().toISOString(),
-      reflections: [{
-        id: `reflection-${Date.now()}`,
-        author: 'Remote Host',
-        text: `Welcome ${alias}! Drop your insights any time.`,
-        createdAt: new Date().toISOString()
-      }]
-    };
-    setStudyGroups(prev => [...prev, remoteGroup]);
-    setSelectedGroupId(remoteGroup.id);
+    setStudyGroups(prev => prev.map(group => group.id === groupId
+      ? { ...group, tradition, targetBook: book, targetChapter: chapter, reflections: [...group.reflections, { id: `reflection-${Date.now()}`, author: 'System', text: `Now reading ${label}.`, createdAt: new Date().toISOString() }] }
+      : group));
+    if (!quiet) toast({ title: `Circle set to ${label}`, description: 'Copy a fresh invite so others land here too.' });
   };
 
-  const handleSetGroupTarget = (groupId: string, book: string, chapter: number) => {
-    setStudyGroups(prev => prev.map(group => group.id === groupId ? { ...group, targetBook: book, targetChapter: chapter } : group));
-    setSelectedBook(book);
-    setSelectedChapter(chapter);
+  const handleSetGroupTargetToCurrent = (groupId: string) =>
+    handleSetGroupTarget(groupId, selectedBook, tradition === 'quran' ? 1 : selectedChapter);
+
+  const handleRenameGroup = (groupId: string, name: string, focus: string) => {
+    if (circleActor) {
+      circleStore.renameCircle(groupId, name, focus)
+        .then(() => toast({ title: `Renamed to ${name}`, description: 'Existing invite links keep working.' }))
+        .catch(circleFail('Could not rename the circle'));
+      return;
+    }
+    setStudyGroups(prev => prev.map(group => group.id === groupId ? { ...group, name, focus } : group));
+    toast({ title: `Renamed to ${name}`, description: 'Existing invite links keep working.' });
+  };
+
+  const handleGoToGroupTarget = (groupId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group?.targetBook || !group.targetChapter) return;
     setPendingGroupSync({ groupId });
-    handleGenerate(undefined, { book, chapter });
+    void openPassage({ tradition: group.tradition, bookName: group.targetBook, chapter: group.targetChapter, mode: 'read' });
   };
 
-  const handleAddReflection = (groupId: string, text: string) => {
+  const handleAddReflection = (groupId: string, text: string, ref?: PassagePointer) => {
+    if (circleActor) {
+      const group = groups.find(g => g.id === groupId);
+      if (!group) return;
+      circleStore.addReflection(circleActor, group, text, ref)
+        .then(() => awardXp(25))
+        .catch(err => {
+          if (err instanceof circleStore.SessionLockedError) toast({ title: 'Session ended', description: err.message, tone: 'error' });
+          else circleFail('Could not share the reflection')(err);
+        });
+      return;
+    }
     const alias = profile.displayName.trim() || 'You';
-    const entry = { id: `reflection-${Date.now()}`, author: alias, text, createdAt: new Date().toISOString() };
+    const entry: ReflectionEntry = { id: `reflection-${Date.now()}`, author: alias, text, createdAt: new Date().toISOString(), ...(ref ? { ref } : {}) };
     setStudyGroups(prev => prev.map(group => group.id === groupId ? { ...group, reflections: [...group.reflections, entry] } : group));
     awardXp(25);
   };
 
-  const handleLeaveGroup = (groupId: string) => {
-    const alias = profile.displayName.trim() || 'You';
-    setStudyGroups(prev => prev
-      .map(group => group.id === groupId ? { ...group, members: group.members.filter(m => m !== alias) } : group)
-      .filter(group => group.members.length > 0));
+  const handleLeaveGroup = async (groupId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    const leadingOthers = !!circleActor && group.ownerUid === circleActor.uid && (group.memberUids?.length ?? 0) > 1;
+    const ok = await confirm({
+      title: `Leave ${group.name}?`,
+      description: circleActor
+        ? `You drop out of the circle on every device.${leadingOthers ? ' Leadership passes to the next member.' : ''} An invite link brings you back.`
+        : 'The circle and your reflections in it are removed from this device. An invite link brings it back.',
+      confirmLabel: 'Leave circle',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    if (circleActor) {
+      circleStore.leaveCircle(circleActor, groupId).catch(circleFail('Could not leave the circle'));
+      if (selectedGroupId === groupId) setSelectedGroupId(null);
+      return;
+    }
+    setStudyGroups(prev => prev.filter(g => g.id !== groupId));
     if (selectedGroupId === groupId) setSelectedGroupId(null);
   };
 
+  /** Leader ends the open session: the circle locks for everyone until the next one starts. */
+  const handleEndSessionQuick = async (groupId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group || !circleActor) return;
+    const ok = await confirm({
+      title: `End the session for ${group.name}?`,
+      description: 'Everyone is locked out of adding reflections until you start the next session. Write the summary from the circle page if you want one; you can add it later under History too.',
+      confirmLabel: 'End session for everyone',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    circleStore.endSession(circleActor, groupId, { summary: '', takeaways: [] })
+      .then(() => toast({ title: 'Session ended', description: 'The circle is locked. Start the next session from the circle page.' }))
+      .catch(circleFail('Could not end the session'));
+  };
+
   const acknowledgeGroupSync = (groupId: string) => {
+    if (circleActor) { awardXp(60); return; }
     setStudyGroups(prev => prev.map(group => {
       if (group.id !== groupId) return group;
       const systemEntry = {
@@ -771,7 +1309,7 @@ const App: React.FC = () => {
     setCustomHeroes(prev => [...prev, newHero]);
     setActiveHeroIds(prev => {
       if (prev.length >= HERO_LIMIT) {
-        alert(`Hero saved! You can keep ${HERO_LIMIT} heroes active at once—deactivate one to spotlight ${newHero.name}.`);
+        setTimeout(() => toast({ title: `${newHero.name} saved`, description: `Only ${HERO_LIMIT} characters can be in the cast at once. Swap one out to use them.`, tone: 'info' }), 0);
         return prev;
       }
       return [...prev, newHero.id];
@@ -782,7 +1320,7 @@ const App: React.FC = () => {
     setActiveHeroIds(prev => {
       if (prev.includes(heroId)) return prev.filter(id => id !== heroId);
       if (prev.length >= HERO_LIMIT) {
-        alert(`You can only keep ${HERO_LIMIT} heroes active for story generation.`);
+        setTimeout(() => toast({ title: `The cast is full`, description: `Up to ${HERO_LIMIT} characters appear in a comic. Take one out first.`, tone: 'warning' }), 0);
         return prev;
       }
       return [...prev, heroId];
@@ -833,11 +1371,15 @@ const App: React.FC = () => {
     setLanguage(pack.language);
     setIsGeneratingScript(false);
     setShowOfflineManager(false);
-    alert('Offline pack loaded. Images use cached data URIs.');
+    switchMode('comic');
+    toast({ title: `${pack.title} opened from your offline packs` });
   };
 
-  const handleDeleteOfflinePack = (packId: string) => {
-    setOfflinePacks(prev => prev.filter(pack => pack.id !== packId));
+  const handleDeleteOfflinePack = async (packId: string) => {
+    const pack = offlinePacks.find(p => p.id === packId);
+    if (!pack) return;
+    if (!(await confirm({ title: `Remove ${pack.title}?`, description: 'The saved pictures for this chapter are deleted from this device.', confirmLabel: 'Remove', tone: 'danger' }))) return;
+    setOfflinePacks(prev => prev.filter(p => p.id !== packId));
   };
 
   const handleExportOfflinePack = (packId: string) => {
@@ -855,88 +1397,20 @@ const App: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleBookChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const book = e.target.value;
-    if (checkFeatureLock('book', book)) {
-      setSelectedBook(book);
-    }
-  };
-
-  const handleVersionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const raw = e.target.value as string;
-    // Special case: discovered scripture entries (non-enum translations)
-    if (raw.startsWith('SCRIPTURE::')) {
-      const id = raw.replace('SCRIPTURE::', '');
-      const entry = scriptureEntries.find(s => s.id === id);
-      if (!entry) return;
-      // Only allow discovered entries that are Bible translations. Ignore Quran/other groups here.
-      if (entry.group !== 'Bible') return;
-      // Check tier gating for discovered scriptures: Free users must upgrade
-      if (stats.tier === UserTier.FREE) {
-        setShowMembershipModal(true);
-        return;
-      }
-  // Load the scripture data and set as active scripture
-  setSelectedScripture(entry);
-  // reflect selection in version state so select shows correct option
-  setVersion(raw as unknown as BibleVersion);
-      loadScriptureData(entry)
-        .then(data => setScriptureData(data))
-        .catch(err => {
-          console.warn('Failed to load scripture data', err);
-          setScriptureData(null);
-        });
-      return;
-    }
-
-    const v = raw as BibleVersion;
-    if (!localVersionSet.has(v)) {
-      const fallback = findFallbackVersion(localVersionSet);
-      if (version !== fallback) {
-        setVersion(fallback);
-      }
-      return;
-    }
-    if (checkFeatureLock('version', v)) {
-      setVersion(v);
-      // Clear any selected scripture when switching to a standard version
-      setSelectedScripture(null);
-      setScriptureData(null);
-    }
-  };
-
-  const handleArtStyleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const s = e.target.value as ArtStyle;
+  const handleArtStyleChange = (s: ArtStyle) => {
     if (checkFeatureLock('art', s)) {
       setArtStyle(s);
     }
   };
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const l = e.target.value;
-    if (checkFeatureLock('language', l)) {
-      setLanguage(l);
-    }
-  };
-
-  // Handle scripture selection (Bible translation, Quran, Deuterocanonical)
-  const handleScriptureChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const entryId = e.target.value;
-    if (!entryId) {
-      setSelectedScripture(null);
-      setScriptureData(null);
-      return;
-    }
-    const entry = scriptureEntries.find(s => s.id === entryId);
-    if (!entry) return;
-
-    setSelectedScripture(entry);
-    try {
-      const data = await loadScriptureData(entry);
-      setScriptureData(data);
-    } catch (err) {
-      console.warn('Failed to load scripture data:', err);
-      setScriptureData(null);
+  const handleLanguageChange = (l: string) => {
+    if (!checkFeatureLock('language', l)) return;
+    setLanguage(l);
+    // A reader who chooses isiZulu almost certainly wants the isiZulu Bible too.
+    if (l === 'Zulu' && tradition === 'protestant' && selectedTranslation !== 'zul1883') {
+      setSelectedTranslation('zul1883');
+      if (companionId === 'zul1883') setCompanionId(null);
+      toast({ title: 'Ufunda ngesiZulu', description: 'The chapter now shows the isiZulu Bible (1883). Comics and explanations are written in Zulu when they are generated. Pick "Also show underneath" to keep English alongside.' });
     }
   };
 
@@ -1001,6 +1475,7 @@ const App: React.FC = () => {
     
     if (!checkFeatureLock('book', bookToUse)) return;
 
+    switchMode('comic');
     setError(null);
     setIsGeneratingScript(true);
     setPanels([]);
@@ -1012,7 +1487,7 @@ const App: React.FC = () => {
     setShowQuiz(false);
 
     const canUseCache = activeHeroIds.length === 0;
-    const cacheKey = getCacheKey(bookToUse, chapterToUse, version, language, artStyle);
+    const cacheKey = getCacheKey(bookToUse, chapterToUse, `${tradition}:${selectedTranslation || 'default'}`, language, artStyle);
 
     if (canUseCache) {
       const cached = loadCachedChapter(cacheKey);
@@ -1078,8 +1553,14 @@ const App: React.FC = () => {
         }
       }
 
-      // Prefer native text when available (standard Bible versions / library)
-      const localText = await loadChapterText(version, bookToUse, chapterToUse);
+      // Prefer native text from the permanent scripture store (tradition-aware, gap-repaired)
+      const localText = await loadChapter(
+        tradition,
+        selectedTranslation,
+        override?.book ? override.book : (selectedBookSlug || bookToUse),
+        chapterToUse
+      );
+      if (localText?.provenance) setChapterProvenance(localText.provenance);
 
       if (localText && localText.verses.length > 0) {
         const verses = localText.verses;
@@ -1194,14 +1675,36 @@ const App: React.FC = () => {
     }
   };
 
-  const handleQuiz = async () => {
-    if (quizData) { setShowQuiz(true); return; }
-    setIsGeneratingScript(true);
+  // Quizzes come from the permanent quiz bank: built from the chapter text
+  // (instant, offline) and enriched with stored comprehension quizzes.
+  const handleQuiz = async (fresh: boolean = false) => {
+    if (quizData && !fresh) { setShowQuiz(true); return; }
+    if (!chapterText || chapterText.length === 0) {
+      setError('Load a chapter first, then test your knowledge.');
+      return;
+    }
     try {
-      const q = await generateQuiz(selectedBook, selectedChapter);
-      setQuizData(q);
+      const pick = await getQuiz(
+        {
+          tradition,
+          translationId: chapterTextSource?.versions?.[0] || selectedTranslation || 'default',
+          bookSlug: selectedBookSlug || selectedBook,
+          bookName: selectedBook,
+          chapter: selectedChapter,
+          verses: chapterText,
+          verseLabel: tradition === 'quran' ? 'Ayah' : 'Verse',
+          isQuran: tradition === 'quran',
+        },
+        { fresh, excludeId: quizPick?.set.id }
+      );
+      setQuizData(pick.quiz);
+      setQuizPick(pick);
+      setQuizAnswers({});
       setShowQuiz(true);
-    } catch (e) { alert("Could not create quiz."); } finally { setIsGeneratingScript(false); }
+    } catch (e) {
+      console.warn('Quiz failed', e);
+      setError('Could not build a quiz for this chapter.');
+    }
   };
 
   const handleOpenExplain = (text: string) => {
@@ -1241,6 +1744,7 @@ const App: React.FC = () => {
     setShowNotes(false);
   };
 
+  const selectedGroup = selectedGroupId ? groups.find(g => g.id === selectedGroupId) || null : null;
   const activeJourney = activeJourneyId ? GUIDED_JOURNEYS.find(j => j.id === activeJourneyId) : null;
   const activeJourneyProgress = activeJourneyId ? journeyProgress[activeJourneyId] : null;
   const activeJourneyPercent = activeJourney && activeJourneyProgress
@@ -1256,369 +1760,673 @@ const App: React.FC = () => {
 
   const isBookmarked = stats.bookmarks.includes(`${selectedBook} ${selectedChapter}`);
   const isPaid = stats.tier === UserTier.EXPLORER || stats.tier === UserTier.SCHOLAR;
+  const passageLabel = tradition === 'quran' ? selectedBook : `${selectedBook} ${selectedChapter}`;
+
+  /* ---- The circle and where it is ---- */
+  const currentChapterNo = tradition === 'quran' ? 1 : selectedChapter;
+  const circleIsQuran = (selectedGroup?.tradition ?? tradition) === 'quran';
+  const circleLabel = selectedGroup?.targetBook ? `${selectedGroup.targetBook}${circleIsQuran ? '' : ` ${selectedGroup.targetChapter}`}` : null;
+  const circleOnChapter = !!selectedGroup?.targetBook && selectedGroup.targetBook === selectedBook && (circleIsQuran || selectedGroup.targetChapter === currentChapterNo);
+  const circleDrifted = !!circleLabel && !circleOnChapter;
+  useEffect(() => {
+    if (!followCircle || !selectedGroup || circleOnChapter) return;
+    handleSetGroupTarget(selectedGroup.id, selectedBook, currentChapterNo, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [followCircle, selectedGroup?.id, selectedBook, currentChapterNo, tradition]);
+  useEffect(() => { setRailAttach(true); }, [readerSelection?.key]);
+  const selectionPointer = (): PassagePointer | undefined => readerSelection
+    ? { tradition, book: selectedBook, chapter: currentChapterNo, verses: readerSelection.verses, label: readerSelection.label }
+    : undefined;
+
+  /* ---- Two languages on one page ---- */
+  const effectiveTranslation = chapterTextSource?.versions?.[0] || selectedTranslation || null;
+  const companionId = (companionByTradition[tradition] ?? null) === effectiveTranslation ? null : (companionByTradition[tradition] ?? null);
+  const setCompanionId = (id: string | null) => {
+    setCompanionByTradition(prev => {
+      const next = { ...prev, [tradition]: id };
+      safeWrite(STORAGE_KEYS.companion, next);
+      return next;
+    });
+  };
+  /** The small language becomes the big one and vice versa. Marks stay where they are — they belong to the verse. */
+  const swapCompanion = () => {
+    if (!companionId || !effectiveTranslation) return;
+    setSelectedTranslation(companionId);
+    setCompanionId(effectiveTranslation);
+  };
+  useEffect(() => {
+    let cancelled = false;
+    loadManifest(tradition)
+      .then(m => {
+        if (cancelled) return;
+        setTranslationMeta({
+          primary: m.translations.find(t => t.id === effectiveTranslation) ?? null,
+          companion: companionId ? m.translations.find(t => t.id === companionId) ?? null : null,
+        });
+      })
+      .catch(() => { if (!cancelled) setTranslationMeta({ primary: null, companion: null }); });
+    return () => { cancelled = true; };
+  }, [tradition, effectiveTranslation, companionId]);
+  useEffect(() => {
+    if (!companionId || !chapterText?.length) { setCompanionText(null); return; }
+    let cancelled = false;
+    const bookRef = selectedBookSlug || selectedBook;
+    loadChapter(tradition, companionId, bookRef, selectedChapter, { repair: 'none', allowAI: false })
+      .then(r => {
+        if (cancelled) return;
+        if (!r) { setCompanionText(null); return; }
+        setCompanionText({ id: companionId, name: r.entry.displayName, language: translationMeta.companion?.language, verses: r.verses });
+      })
+      .catch(() => { if (!cancelled) setCompanionText(null); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tradition, companionId, selectedBookSlug, selectedBook, selectedChapter, chapterText, translationMeta.companion?.language]);
+  const comicNotes = useMemo(
+    () => (readerMode === 'comic' ? getVerseNotes(markChapterKey(tradition, selectedBookSlug || selectedBook, tradition === 'quran' ? 1 : selectedChapter)) : {}),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [readerMode, tradition, selectedBookSlug, selectedBook, selectedChapter],
+  );
+  const chapterNoteKey = `${selectedBook} ${selectedChapter}`;
+  const saveChapterNote = (text: string) => {
+    setNotes(prev => {
+      const next = { ...prev };
+      if (text.trim()) next[chapterNoteKey] = text;
+      else delete next[chapterNoteKey];
+      return next;
+    });
+  };
+
+  // What comes before and after this chapter — across book boundaries, so a
+  // reader is never left at a dead end (a surah is one chapter, so "next" is
+  // the next surah; the last chapter of Genesis leads into Exodus 1).
+  type Passage = { bookSlug: string; bookName: string; chapter: number; label: string };
+  const bookIdx = bookOrder.findIndex(b => b.slug === selectedBookSlug || b.displayName === selectedBook);
+  const labelFor = (b: { displayName: string }, ch: number) => (tradition === 'quran' ? b.displayName : `${b.displayName} ${ch}`);
+  const nextPassage: Passage | null = (() => {
+    if (tradition !== 'quran' && selectedChapter < chapterCount) {
+      return { bookSlug: selectedBookSlug || selectedBook, bookName: selectedBook, chapter: selectedChapter + 1, label: `${selectedBook} ${selectedChapter + 1}` };
+    }
+    const b = bookIdx >= 0 ? bookOrder[bookIdx + 1] : undefined;
+    return b ? { bookSlug: b.slug, bookName: b.displayName, chapter: 1, label: labelFor(b, 1) } : null;
+  })();
+  const prevPassage: Passage | null = (() => {
+    if (tradition !== 'quran' && selectedChapter > 1) {
+      return { bookSlug: selectedBookSlug || selectedBook, bookName: selectedBook, chapter: selectedChapter - 1, label: `${selectedBook} ${selectedChapter - 1}` };
+    }
+    const b = bookIdx > 0 ? bookOrder[bookIdx - 1] : undefined;
+    return b ? { bookSlug: b.slug, bookName: b.displayName, chapter: b.chapters, label: labelFor(b, b.chapters) } : null;
+  })();
+  const goTo = (p: Passage | null) => {
+    if (!p) return;
+    setSelectedBookSlug(p.bookSlug);
+    setSelectedBook(p.bookName);
+    setSelectedChapter(p.chapter);
+  };
+  const goNext = () => goTo(nextPassage);
+  const goPrev = () => goTo(prevPassage);
+  const communityBtnRef = useRef<HTMLButtonElement>(null);
+  const profileBtnRef = useRef<HTMLButtonElement>(null);
+  const quizScore = quizData ? quizData.questions.reduce((n, q, i) => n + (quizAnswers[i] === q.correctAnswer ? 1 : 0), 0) : 0;
+  const quizAnswered = quizData ? Object.keys(quizAnswers).length : 0;
+  const quizTotal = quizData?.questions.length ?? 0;
+
+  const answerQuiz = (qIdx: number, oIdx: number) => {
+    if (!quizData || quizAnswers[qIdx] != null) return;
+    setQuizAnswers(prev => ({ ...prev, [qIdx]: oIdx }));
+    if (oIdx === quizData.questions[qIdx].correctAnswer) awardXp(20);
+  };
+
+  const artStyleOptions = Object.values(ArtStyle).map(s => {
+    let locked = false;
+    if (stats.tier === UserTier.FREE && !FREE_STYLES.includes(s)) locked = true;
+    if (stats.tier === UserTier.EXPLORER && !EXPLORER_STYLES.includes(s)) locked = true;
+    return { value: s, label: s, locked, hint: locked ? 'Upgrade to unlock' : undefined };
+  });
+
+  /* Right-rail cards: your path, your circle */
+  const railCards = (
+    <>
+      {activeJourney && activeJourneyProgress ? (
+        <Card tone="blue" className="p-3">
+          <Eyebrow className="text-blue-100" icon={<Compass size={12} />}>Your path · {activeJourneyPercent}%</Eyebrow>
+          <p className="font-black text-sm leading-tight mt-0.5">{activeJourney.title}</p>
+          <div className="mt-2 h-1.5 bg-blue-900/50 rounded-full overflow-hidden"><div className="h-full bg-yellow-300" style={{ width: `${activeJourneyPercent}%` }} /></div>
+          {journeyComplete ? (
+            <p className="text-[11px] text-blue-100 mt-2">Finished. Badge earned: {activeJourney.badge}.</p>
+          ) : nextJourneyChapter && (nextJourneyChapter.book !== selectedBook || nextJourneyChapter.chapter !== selectedChapter) ? (
+            <button onClick={() => triggerJourneyChapter(activeJourney.id, nextJourneyChapterIndex)} className="mt-2 w-full text-left text-[11px] bg-white/15 hover:bg-white/25 rounded-lg px-2 py-1.5 font-bold">
+              Next: {nextJourneyChapter.book} {nextJourneyChapter.chapter} →
+            </button>
+          ) : (
+            <p className="text-[11px] text-blue-100 mt-2">This is your next step. Mark it read at the end of the chapter.</p>
+          )}
+        </Card>
+      ) : (
+        <Card className="p-3">
+          <Eyebrow icon={<Compass size={12} />}>Reading path</Eyebrow>
+          <p className="text-[11px] text-slate-600 mt-1">Not sure where to go next? Follow a short path of chapters that build on each other.</p>
+          <Button size="xs" variant="primary" block className="mt-2" onClick={() => setCommunityDrawer('journeys')}>Pick a path</Button>
+        </Card>
+      )}
+      <Card tone="dark" className="p-3">
+        <div className="flex items-center justify-between gap-2">
+          <Eyebrow className="text-green-300" icon={<Users size={12} />}>Study circle</Eyebrow>
+          {selectedGroup && (
+            <button onClick={() => setCommunityDrawer('circle')} className="text-[10px] font-black uppercase tracking-wider text-slate-300 hover:text-white" title="Invite people, switch circle">Manage</button>
+          )}
+        </div>
+        {selectedGroup ? (
+          <>
+            <p className="font-black text-sm leading-tight mt-0.5">{selectedGroup.name}</p>
+            {circleDrifted ? (
+              <button onClick={() => handleGoToGroupTarget(selectedGroup.id)} className="mt-2 w-full text-left text-[11px] bg-white/10 hover:bg-white/20 rounded-lg px-2 py-1.5">
+                Circle is on <b>{circleLabel}</b> · Go there →
+              </button>
+            ) : (
+              <p className="text-[11px] text-green-200 mt-0.5">Reading {passageLabel} together</p>
+            )}
+            {/* Reflections live here, next to the text — not in a drawer */}
+            <ul className="mt-2 space-y-1.5 max-h-48 overflow-y-auto pr-0.5">
+              {selectedGroup.reflections.filter(r => r.author !== 'System').slice(-4).reverse().map(r => (
+                <li key={r.id} className="bg-white/10 rounded-lg px-2 py-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-green-300 flex items-center gap-1.5 flex-wrap">
+                    {r.author}
+                    {r.ref && (
+                      <button
+                        type="button"
+                        onClick={() => openPointer(r.ref!)}
+                        title={sameChapter(r.ref, selectedBook, selectedChapter) ? 'Select these verses' : 'Open this passage'}
+                        className="normal-case tracking-normal font-black text-[10px] px-1.5 py-0.5 rounded bg-yellow-300 text-black hover:bg-yellow-200"
+                      >
+                        {r.ref.label}
+                      </button>
+                    )}
+                  </p>
+                  <p className="text-[11px] leading-snug text-slate-100">{r.text}</p>
+                </li>
+              ))}
+              {selectedGroup.reflections.filter(r => r.author !== 'System').length === 0 && (
+                <li className="text-[11px] text-slate-400">Nothing shared yet. Select verses and choose Share, or write below.</li>
+              )}
+            </ul>
+            <form
+              className="mt-2 flex flex-col gap-1"
+              onSubmit={e => {
+                e.preventDefault();
+                if (!railDraft.trim()) return;
+                handleAddReflection(selectedGroup.id, railDraft.trim(), railAttach ? selectionPointer() : undefined);
+                setRailDraft('');
+              }}
+            >
+              {readerSelection && railAttach && (
+                <p className="text-[10px] font-bold text-slate-300 flex items-center gap-1">
+                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-yellow-300 text-black font-black">
+                    {readerSelection.label}
+                    <button type="button" onClick={() => setRailAttach(false)} aria-label="Do not attach these verses" title="Detach" className="rounded hover:bg-yellow-200"><X size={11} /></button>
+                  </span>
+                  will be attached
+                </p>
+              )}
+              {readerSelection && !railAttach && (
+                <button type="button" onClick={() => setRailAttach(true)} className="text-left text-[10px] font-bold text-slate-400 underline">Attach {readerSelection.label}</button>
+              )}
+              <div className="flex gap-1">
+              <input
+                value={railDraft}
+                onChange={e => setRailDraft(e.target.value)}
+                placeholder={readerSelection && railAttach ? 'Say something about it…' : 'What stood out?'}
+                aria-label="Share a reflection with your circle"
+                className="min-w-0 flex-1 bg-white text-slate-900 text-xs font-bold rounded-lg px-2 py-1.5 border-2 border-black placeholder:font-medium placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-green-300"
+              />
+              <button type="submit" disabled={!railDraft.trim()} aria-label="Share" className="shrink-0 w-8 h-8 rounded-lg bg-green-400 border-2 border-black text-black disabled:opacity-40 flex items-center justify-center"><Send size={14} /></button>
+              </div>
+            </form>
+          </>
+        ) : (
+          <>
+            <p className="text-[11px] text-slate-300 mt-1">Read the same chapter as a friend and share what stood out, right here next to the text.</p>
+            <Button size="xs" variant="success" block className="mt-2" onClick={() => setCommunityDrawer('circle')}>Start or join</Button>
+          </>
+        )}
+      </Card>
+    </>
+  );
 
   return (
     <div className="min-h-screen pb-20 bg-yellow-50 font-sans">
-      
-      {/* --- DONATION BANNER --- */}
-      {!isPaid && (
-        <DonationBanner onDonate={() => setShowUrgentModal(true)} />
-      )}
 
-      {/* --- FLOATING HEART BUTTON --- */}
-      {!isPaid && (
-        <button 
-          onClick={() => setShowUrgentModal(true)}
-          className="fixed bottom-6 right-6 z-40 bg-red-600 text-white p-3 rounded-full shadow-xl hover:scale-110 transition-transform border-4 border-white animate-bounce-slow print:hidden"
-          title="Support the Mission"
-        >
-          <Heart fill="currentColor" size={24} />
-        </button>
-      )}
+      {!isPaid && <DonationBanner onDonate={() => setShowUrgentModal(true)} />}
 
-      {/* --- MODALS --- */}
-      {showUrgentModal && <UrgentDonationModal onClose={() => setShowUrgentModal(false)} onDonate={handleDonation} />}
-      {showMembershipModal && <MembershipModal currentTier={stats.tier} onClose={() => setShowMembershipModal(false)} onUpgrade={handleUpgrade} />}
-      {showMissionModal && <MissionModal onClose={() => setShowMissionModal(false)} />}
-      {showFounderModal && <FounderStoryModal onClose={() => setShowFounderModal(false)} onDonate={() => { setShowFounderModal(false); setShowUrgentModal(true); }} />}
-      {showCharacterLibrary && <CharacterLibrary onClose={() => setShowCharacterLibrary(false)} tier={stats.tier} onUpgrade={() => setShowMembershipModal(true)} currentBook={selectedBook} />}
+      {/* --- Self-contained overlays (Escape closes them) --- */}
+      {showUrgentModal && <EscapeLayer onClose={() => setShowUrgentModal(false)}><UrgentDonationModal onClose={() => setShowUrgentModal(false)} onDonate={handleDonation} /></EscapeLayer>}
+      {showMembershipModal && <EscapeLayer onClose={() => setShowMembershipModal(false)}><MembershipModal currentTier={stats.tier} onClose={() => setShowMembershipModal(false)} onUpgrade={handleUpgrade} /></EscapeLayer>}
+      {showMissionModal && <EscapeLayer onClose={() => setShowMissionModal(false)}><MissionModal onClose={() => setShowMissionModal(false)} /></EscapeLayer>}
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      {showFounderModal && <EscapeLayer onClose={() => setShowFounderModal(false)}><FounderStoryModal onClose={() => setShowFounderModal(false)} onDonate={() => { setShowFounderModal(false); setShowUrgentModal(true); }} /></EscapeLayer>}
+      {showCharacterLibrary && <EscapeLayer onClose={() => setShowCharacterLibrary(false)}><CharacterLibrary onClose={() => setShowCharacterLibrary(false)} tier={stats.tier} onUpgrade={() => setShowMembershipModal(true)} currentBook={selectedBook} /></EscapeLayer>}
       {showOfflineManager && (
-        <OfflinePackManager
-          packs={offlinePacks}
-          onClose={() => setShowOfflineManager(false)}
-          onLoad={handleLoadOfflinePack}
-          onDelete={handleDeleteOfflinePack}
-          onExport={handleExportOfflinePack}
-        />
-      )}
-      {showLeaderboard && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-            onClick={() => setShowLeaderboard(false)}
-          ></div>
-          <div className="relative bg-white w-full max-w-xl rounded-3xl border-4 border-black shadow-[14px_14px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white border-b-4 border-black">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">Community</p>
-                <h2 className="comic-font text-2xl">Streak Leaderboard</h2>
-              </div>
-              <button onClick={() => setShowLeaderboard(false)} className="text-white/70 hover:text-white">
-                <X size={24} />
-              </button>
-            </div>
-            <div className="p-4">
-              <Leaderboard profile={profile} stats={stats} />
-            </div>
-          </div>
-        </div>
+        <EscapeLayer onClose={() => setShowOfflineManager(false)}>
+          <OfflinePackManager packs={offlinePacks} onClose={() => setShowOfflineManager(false)} onLoad={handleLoadOfflinePack} onDelete={handleDeleteOfflinePack} onExport={handleExportOfflinePack} />
+        </EscapeLayer>
       )}
 
-      {/* --- HERO DASHBOARD --- */}
-      <div className="bg-slate-900 text-white print:hidden">
-        <div className="container mx-auto max-w-6xl p-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-               <div className="bg-yellow-400 p-2 border-2 border-white rounded transform -rotate-2">
-                 <BookOpen className="text-black" size={24} />
-               </div>
-               <div>
-                 <h1 className="text-2xl font-black italic tracking-wider text-yellow-400">SCRIPTURE<span className="text-white">COMIX</span></h1>
-                 <div className="flex flex-wrap items-center gap-2">
-                   <p className="text-xs text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                      Interactive Bible Adventures 
-                      {stats.tier !== UserTier.FREE && (
-                        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] flex items-center gap-1 shadow-glow animate-pulse ${stats.tier === UserTier.SCHOLAR ? 'bg-yellow-500 text-black' : 'bg-blue-500 text-white'}`}>
-                          {stats.tier === UserTier.SCHOLAR ? <Crown size={10} fill="currentColor"/> : <Compass size={10} fill="currentColor"/>} 
-                          {stats.tier}
-                        </span>
-                      )}
-                   </p>
-                   <button onClick={() => setShowMissionModal(true)} className="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-gray-300 border border-slate-600">Our Mission</button>
-                   <button onClick={() => setShowFounderModal(true)} className="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-gray-300 border border-slate-600 flex items-center gap-1"><User size={10}/> About Founder</button>
-                   <button onClick={() => setShowCharacterLibrary(true)} className="text-[10px] bg-purple-900 hover:bg-purple-800 text-purple-100 px-2 py-0.5 rounded border border-purple-700 flex items-center gap-1"><Users size={10}/> Character Library</button>
-                 </div>
-               </div>
-            </div>
-            <div className="flex items-center gap-4 bg-slate-800 p-2 rounded-lg border border-slate-700">
-               {/* Language Selector in Header */}
-               <div className="flex items-center gap-2 px-3 border-r border-slate-600">
-                  <Globe size={16} className="text-blue-400" />
-                  <select 
-                    value={language} 
-                    onChange={handleLanguageChange} 
-                    className="bg-transparent text-sm font-bold outline-none text-white max-w-[80px]"
-                  >
-                    {SUPPORTED_LANGUAGES.map(lang => (
-                      <option key={lang} value={lang} className="text-black">{lang}</option>
-                    ))}
-                  </select>
-               </div>
+      <StudyLibrary
+        open={showStudyLibrary}
+        onClose={() => setShowStudyLibrary(false)}
+        stats={stats}
+        lastRead={lastRead}
+        chapterNotes={notes}
+        onOpen={openPassage}
+        onExport={handleExportStudy}
+        onImportFile={handleImportStudy}
+      />
 
-               <div className="flex items-center gap-2 px-3 border-r border-slate-600" title="Daily Streak">
-                  <Flame className="text-orange-500 fill-orange-500" size={20} />
-                  <div><span className="text-lg font-bold">{stats.streak}</span><span className="text-[10px] text-gray-400 block uppercase">Day Streak</span></div>
-               </div>
-               <div className="flex items-center gap-2 px-3 border-r border-slate-600" title="Spirit Power (XP)">
-                  <Sparkles className="text-purple-400" size={20} />
-                  <div><span className="text-lg font-bold">{stats.xp}</span><span className="text-[10px] text-gray-400 block uppercase">XP</span></div>
-               </div>
-               <div className="flex items-center gap-2 px-3" title="Chapters Read">
-                  <Trophy className="text-yellow-400" size={20} />
-                  <div><span className="text-lg font-bold">{stats.chaptersRead}</span><span className="text-[10px] text-gray-400 block uppercase">Chapters</span></div>
-               </div>
-               <button
-                 onClick={() => setShowLeaderboard(true)}
-                 className="hidden md:flex items-center gap-1 px-3 py-1 bg-slate-700 text-xs uppercase tracking-[0.25em] rounded-full border border-slate-500 hover:bg-slate-600"
-                 title="View streak leaderboard"
-               >
-                 <Trophy size={14} className="text-yellow-300" /> Board
-               </button>
-               {stats.tier === UserTier.SCHOLAR && (
-                 <button
-                   onClick={() => setShowOfflineManager(true)}
-                   className="flex items-center gap-2 px-3 py-1 bg-yellow-400 text-black font-black rounded border-2 border-black text-xs uppercase tracking-widest hover:bg-yellow-300"
-                 >
-                   <Archive size={14} /> Offline {offlinePacks.length}
-                 </button>
-               )}
-            </div>
-          </div>
-          {dailyChallenge && (
-            <div className="mt-4 bg-gradient-to-r from-blue-900 to-slate-800 p-3 rounded border border-blue-700 flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                 <div className="bg-blue-500 p-1 rounded text-xs font-bold uppercase">Daily Quest</div>
-                 <p className="text-sm">Read <span className="font-bold text-yellow-300">{dailyChallenge.book} Chapter {dailyChallenge.chapter}</span> for +100 XP</p>
-               </div>
-               <button onClick={() => { setSelectedBook(dailyChallenge.book); setSelectedChapter(dailyChallenge.chapter); handleGenerate(undefined, dailyChallenge); }} className="text-xs bg-white text-blue-900 px-3 py-1 rounded font-bold hover:bg-blue-100 transition-colors">ACCEPT</button>
-            </div>
-          )}
-          {activeJourney && activeJourneyProgress && (
-            <div className="mt-4 bg-white text-slate-900 p-4 rounded-2xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,0.7)] flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-slate-900 text-white p-2 rounded-full border-2 border-black">
-                  <MapPinned size={20} />
-                </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Journey Active</p>
-                  <h4 className="comic-font text-2xl">{activeJourney.title}</h4>
-                  <p className="text-sm text-slate-600">
-                    {journeyComplete
-                      ? 'All checkpoints cleared—replay to keep the badge glowing.'
-                      : nextJourneyChapter
-                        ? `Next: ${nextJourneyChapter.book} ${nextJourneyChapter.chapter} (${nextJourneyChapter.focus})`
-                        : 'Choose any checkpoint from the grid below.'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 flex-wrap">
-                <div className="w-44">
-                  <div className="h-2 bg-slate-100 rounded-full border border-slate-200 overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-yellow-300 via-orange-400 to-red-500" style={{ width: `${activeJourneyPercent}%` }}></div>
-                  </div>
-                  <p className="text-xs font-bold text-slate-500 mt-1">{activeJourneyPercent}% complete</p>
-                </div>
-                {journeyComplete ? (
-                  <button
-                    onClick={() => {
-                      handleJourneyReset(activeJourney.id);
-                      handleJourneyStartAndLaunch(activeJourney.id);
-                    }}
-                    className="px-4 py-2 bg-yellow-400 text-black font-black rounded-full border-2 border-black uppercase tracking-widest text-xs hover:bg-yellow-300"
-                  >
-                    Replay Journey
-                  </button>
-                ) : nextJourneyChapter ? (
-                  <button
-                    onClick={() => triggerJourneyChapter(activeJourney.id, nextJourneyChapterIndex)}
-                    className="px-4 py-2 bg-slate-900 text-white font-black rounded-full border-2 border-black uppercase tracking-widest text-xs hover:bg-slate-800"
-                  >
-                    Continue Journey
-                  </button>
-                ) : null}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* --- MAIN CONTROLS --- */}
+      {/* --- TOP BAR: what am I reading · how do I want it · with whom · who am I --- */}
       <header className="sticky top-0 z-40 bg-white border-b-4 border-black shadow-md print:hidden">
-        <div className="container mx-auto max-w-6xl p-3 flex flex-col xl:flex-row items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center justify-center gap-2 w-full xl:w-auto">
+        <div className="mx-auto max-w-[1440px] px-3 py-2 flex flex-wrap items-center gap-x-3 gap-y-2">
 
-             {/* TRADITION SWITCHER — selects the scripture tradition (Protestant, Catholic, Ethiopian, Quran) */}
-             <TraditionSwitcher
-               selected={tradition}
-               onChange={(t) => {
-                 setTradition(t);
-                 setSelectedBookSlug(null);
-                 const defaultTranslations: Record<Tradition, string> = {
-                   protestant: 'kjv', catholic: 'nabre', ethiopian: 'kjv', quran: 'yusuf-ali',
-                 };
-                 setSelectedTranslation(defaultTranslations[t]);
-               }}
-             />
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2 shrink-0 rounded-lg focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-300" title="ScriptureComix">
+            <span className="bg-yellow-400 p-1.5 border-2 border-black rounded -rotate-3"><BookOpen size={18} className="text-black" /></span>
+            <span className="font-black italic tracking-wider text-lg leading-none hidden xl:inline">SCRIPTURE<span className="text-yellow-500">COMIX</span></span>
+          </button>
 
-             {/* MANIFEST-DRIVEN BOOK SELECTOR — driven by tradition, replaces static BOOK_COLLECTIONS list */}
-             <BookSelector
-               tradition={tradition}
-               selectedBook={selectedBookSlug}
-               selectedChapter={selectedChapter}
-               selectedTranslation={selectedTranslation}
-               onBookChange={(slug, displayName) => {
-                 setSelectedBookSlug(slug);
-                 setSelectedBook(displayName);
-               }}
-               onChapterChange={(ch) => {
-                 setSelectedChapter(ch);
-               }}
-               onTranslationChange={(translationId) => {
-                 setSelectedTranslation(translationId);
-               }}
-             />
+          <PassagePicker
+            tradition={tradition}
+            onTraditionChange={(t) => {
+              setTradition(t);
+              setSelectedBookSlug(null);
+              setSelectedTranslation(DEFAULT_TRANSLATION[t]);
+            }}
+            selectedBook={selectedBookSlug}
+            selectedBookName={selectedBook}
+            selectedChapter={selectedChapter}
+            selectedTranslation={selectedTranslation}
+            onBookChange={(slug, displayName) => { setSelectedBookSlug(slug); setSelectedBook(displayName); }}
+            onChapterChange={(ch) => setSelectedChapter(ch)}
+            onTranslationChange={(translationId) => { setSelectedTranslation(translationId); if (translationId === companionId) setCompanionId(null); }}
+            companionTranslation={companionId}
+            onCompanionChange={setCompanionId}
+            canOpenBook={(displayName) => checkFeatureLock('book', displayName)}
+            chapterCount={chapterCount}
+            canPrev={!!prevPassage}
+            canNext={!!nextPassage}
+            onPrev={goPrev}
+            onNext={goNext}
+          />
 
-             {/* BOOK SELECTOR (GROUPED) - always use canonical Bible book list from BOOK_COLLECTIONS */}
-             <select value={selectedBook} onChange={handleBookChange} className="px-2 py-2 border-2 border-black font-bold focus:bg-yellow-100 rounded bg-gray-50 max-w-[200px]">
-               {Object.entries(BOOK_COLLECTIONS).map(([group, books]) => (
-                  <optgroup key={group} label={group}>
-                     {books.map(b => {
-                       // Logic: Free users can access FREE_ALLOWED_BOOKS. Explorer+ access ALL.
-                       const isLocked = stats.tier === UserTier.FREE && !FREE_ALLOWED_BOOKS.includes(b);
-                       return <option key={b} value={b}>{isLocked ? `🔒 ${b}` : b}</option>
-                     })}
-                  </optgroup>
-               ))}
-             </select>
+          {selectedGroup && (
+            <CirclePill
+              group={selectedGroup}
+              you={profile.displayName.trim() || 'You'}
+              circleLabel={circleLabel}
+              onChapter={circleOnChapter}
+              currentLabel={passageLabel}
+              onGoThere={() => handleGoToGroupTarget(selectedGroup.id)}
+              onSetToCurrent={() => handleSetGroupTargetToCurrent(selectedGroup.id)}
+              onCopyInvite={() => handleInviteGroup(selectedGroup.id)}
+              onManage={() => setCommunityDrawer('circle')}
+              followCircle={followCircle}
+              onFollowCircleChange={setFollowCircle}
+              onOpenPointer={openPointer}
+              onAddReflection={(text, ref) => handleAddReflection(selectedGroup.id, text, ref)}
+              attachable={readerSelection ? { label: readerSelection.label, pointer: selectionPointer()! } : null}
+            />
+          )}
 
-             <div className="flex items-center border-2 border-black rounded bg-white">
-               <button onClick={() => setSelectedChapter(c => Math.max(1, c - 1))} className="px-2 py-2 hover:bg-gray-100 border-r-2 border-black"><ChevronLeft size={18} /></button>
-               <div className="px-4 font-black text-lg min-w-[3rem] text-center">{selectedChapter}</div>
-               <button onClick={() => setSelectedChapter(c => c + 1)} className="px-2 py-2 hover:bg-gray-100 border-l-2 border-black"><ChevronRight size={18} /></button>
-             </div>
-              
-              {/* VERSION SELECTOR */}
-              {/* Versions list is computed per selected book. Books and Versions are separate controls. */}
-              {(() => {
-                // Build groups: Holy Bible (builtin enum + discovered Bible translations), Quran (quran datasets), Deuterocanonical
-                const bookKey = String(selectedBook || '').toLowerCase();
+          <div className="ml-auto flex items-center gap-2">
+            {/* On phones these live in the bottom bar */}
+            <div className="hidden md:flex items-center gap-2">
+            <Segmented
+              ariaLabel="How to read"
+              value={readerMode}
+              onChange={(m) => switchMode(m)}
+              items={[
+                { value: 'read', label: 'Read', icon: <BookOpen size={14} />, title: 'Read the chapter like a book', hideLabelBelow: 'md' },
+                { value: 'study', label: 'Study', icon: <Brain size={14} />, title: 'Verse by verse, with notes and context', hideLabelBelow: 'md' },
+                { value: 'comic', label: 'Comic', icon: <Palette size={14} />, title: 'The illustrated chapter', hideLabelBelow: 'md' },
+              ]}
+            />
+            <Button
+              variant="accent"
+              size="sm"
+              onClick={() => handleQuiz()}
+              disabled={!chapterText || chapterText.length === 0 || isChapterTextLoading}
+              title="Test yourself on this chapter"
+              className="py-2"
+            >
+              <Brain size={14} /> <span className="hidden md:inline">Quiz</span>
+            </Button>
+            </div>
 
-                // Discovered bible translations that contain the selected book
-                const discoveredBible = scriptureEntries
-                  .filter(s => s.group === 'Bible' && s.books && s.books.some(b => b.toLowerCase() === bookKey));
-
-                return (
-                  <select
-                    value={typeof version === 'string' && version.startsWith('SCRIPTURE::') ? version : String(version)}
-                    onChange={handleVersionChange}
-                    className="px-2 py-2 border-2 border-black font-bold bg-gray-50 text-sm rounded max-w-[260px]"
-                  >
-                    <optgroup label="Project Translations">
-                      {discoveredBible.map(s => (
-                        <option key={`SCRIPTURE::${s.id}`} value={`SCRIPTURE::${s.id}`}>{s.displayName}</option>
-                      ))}
-                    </optgroup>
-                  </select>
-                );
-              })()}
-              
-
-              {/* ART STYLE SELECTOR */}
-              <div className="flex items-center gap-1 border-2 border-purple-500 rounded bg-purple-50 px-2 py-1 relative">
-                 <Palette size={16} className="text-purple-600"/>
-                 <select 
-                    value={artStyle} 
-                    onChange={handleArtStyleChange} 
-                    className="bg-transparent font-bold text-sm text-purple-900 outline-none w-24 md:w-auto relative z-0"
-                 >
-                    {Object.values(ArtStyle).map(s => {
-                       let locked = false;
-                       if (stats.tier === UserTier.FREE && !FREE_STYLES.includes(s)) locked = true;
-                       if (stats.tier === UserTier.EXPLORER && !EXPLORER_STYLES.includes(s)) locked = true;
-                       return <option key={s} value={s}>{locked ? `🔒 ${s}` : s}</option>;
-                    })}
-                 </select>
-              </div>
-          </div>
-          <div className="flex gap-2 w-full md:w-auto justify-center">
-             <button onClick={(e) => handleGenerate(e)} disabled={isGeneratingScript} className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-6 border-2 border-black uppercase tracking-wider shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2 disabled:opacity-50">
-              {isGeneratingScript ? <RefreshCw className="animate-spin" size={20} /> : "GENERATE COMIC"}
+            {/* Together */}
+            <button
+              ref={communityBtnRef}
+              onClick={() => { setShowCommunityMenu(v => !v); setShowProfileMenu(false); }}
+              aria-haspopup="menu"
+              aria-expanded={showCommunityMenu}
+              className={cx('hidden md:flex items-center gap-1.5 font-black uppercase tracking-wider text-xs py-2 px-3 border-[3px] border-black rounded-full shadow-[3px_3px_0_0_#000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-300', showCommunityMenu ? 'bg-green-300' : 'bg-white hover:bg-green-50')}
+              title="Read with others"
+            >
+              <Users size={14} /> <span className="hidden lg:inline">Together</span>
             </button>
+            <Popover open={showCommunityMenu} onClose={() => setShowCommunityMenu(false)} anchorRef={communityBtnRef} align="end" width={300} role="menu" label="Read with others" className="p-2">
+              <MenuItem icon={<Users size={16} />} title="Study circle" hint={selectedGroup ? `${selectedGroup.name} · ${selectedGroup.reflections.filter(r => r.author !== 'System').length} reflections` : 'Read the same chapter as friends'} onClick={() => { setShowCommunityMenu(false); setCommunityDrawer('circle'); }} />
+              {groups.length > 0 && (
+                <ul className="mx-1 mb-1 space-y-1 border-2 border-slate-200 rounded-xl p-1.5 bg-slate-50" aria-label="Your circles">
+                  {groups.slice(0, 6).map(g => {
+                    const active = g.id === selectedGroupId;
+                    const ended = g.cloud && g.status === 'ended';
+                    const leads = !!circleActor && g.ownerUid === circleActor.uid;
+                    const label = g.targetLabel || (g.targetBook ? `${g.targetBook}${(g.tradition ?? 'protestant') === 'quran' ? '' : ` ${g.targetChapter}`}` : null);
+                    return (
+                      <li key={g.id} className={cx('rounded-lg px-2 py-1.5 text-xs', active ? 'bg-white border-2 border-black' : 'border-2 border-transparent')}>
+                        <div className="flex items-center justify-between gap-2">
+                          <button type="button" onClick={() => { setSelectedGroupId(g.id); setShowCommunityMenu(false); setCommunityDrawer('circle'); }} className="min-w-0 flex-1 text-left font-black truncate hover:underline" title="Open this circle">
+                            {g.name}
+                          </button>
+                          {ended ? <Pill tone="red"><Lock size={10} /> Ended</Pill> : label ? <span className="text-[10px] text-slate-500 truncate max-w-[7rem]" title={label}>{label}</span> : null}
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {!active && <button type="button" onClick={() => setSelectedGroupId(g.id)} className="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-bold hover:bg-slate-100">Switch to</button>}
+                          {label && <button type="button" onClick={() => { setSelectedGroupId(g.id); setShowCommunityMenu(false); handleGoToGroupTarget(g.id); }} className="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-bold hover:bg-slate-100">Go back to {g.cloud && g.targetVerses?.length ? 'verses' : 'chapter'}</button>}
+                          {g.cloud && leads && !ended && <button type="button" onClick={() => { setShowCommunityMenu(false); handleEndSessionQuick(g.id); }} className="rounded border border-red-300 bg-red-50 text-red-800 px-1.5 py-0.5 font-bold hover:bg-red-100">End session</button>}
+                          <button type="button" onClick={() => { setShowCommunityMenu(false); handleLeaveGroup(g.id); }} className="rounded border border-slate-300 bg-white px-1.5 py-0.5 font-bold hover:bg-slate-100">Exit</button>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              <MenuItem icon={<Compass size={16} />} title="Reading paths" hint={activeJourney ? `${activeJourney.title} · ${activeJourneyPercent}%` : 'Short chapter sequences that build understanding'} onClick={() => { setShowCommunityMenu(false); setCommunityDrawer('journeys'); }} />
+              <MenuItem icon={<Sparkles size={16} />} title="Your cast" hint={customHeroes.length ? `${customHeroes.length} character${customHeroes.length === 1 ? '' : 's'} for your comics` : 'Characters who appear in comics you generate'} onClick={() => { setShowCommunityMenu(false); setCommunityDrawer('forge'); }} />
+            </Popover>
+
+            {/* You */}
+            <button
+              ref={profileBtnRef}
+              onClick={() => { setNameDraft(profile.displayName || ''); setShowProfileMenu(v => !v); setShowCommunityMenu(false); }}
+              aria-haspopup="menu"
+              aria-expanded={showProfileMenu}
+              className={cx('flex items-center gap-1.5 py-1 pl-1 pr-2 border-[3px] border-black rounded-full shadow-[3px_3px_0_0_#000] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-300', showProfileMenu ? 'bg-yellow-200' : 'bg-white hover:bg-yellow-50')}
+              title="You: your name, streak, and everything you have marked"
+            >
+              <MemberAvatar name={profile.displayName || 'Pilgrim'} size="md" className="w-7 h-7" />
+              <span className="hidden md:inline text-xs font-black truncate max-w-[7rem]">{profile.displayName || 'Pilgrim'}</span>
+              {stats.streak > 0 && (
+                <span className="hidden xl:inline-flex items-center gap-0.5 text-[10px] font-black text-orange-800 bg-orange-100 border border-orange-300 rounded-full px-1.5 py-0.5" title="Days in a row you have read something">
+                  <Flame size={11} className="text-orange-500 fill-orange-500" />{stats.streak}-day streak
+                </span>
+              )}
+            </button>
+            <Popover open={showProfileMenu} onClose={() => setShowProfileMenu(false)} anchorRef={profileBtnRef} align="end" width={300} role="menu" label="You" className="p-3 space-y-3 text-sm">
+              <form
+                className="space-y-1"
+                onSubmit={e => { e.preventDefault(); const n = nameDraft.trim(); setProfile(prev => ({ ...prev, displayName: n })); toast({ title: n ? `You are ${n}` : 'Name cleared', description: 'This is how circles see you and how your notes are signed.' }); }}
+              >
+                <label htmlFor="your-name" className="text-[10px] font-black uppercase tracking-widest text-slate-500">Your name · how circles see you</label>
+                <div className="flex gap-1">
+                  <TextInput id="your-name" value={nameDraft} onChange={e => setNameDraft(e.target.value)} placeholder="Pilgrim" className="min-w-0 flex-1" />
+                  <Button type="submit" size="sm" variant="dark" disabled={nameDraft.trim() === (profile.displayName || '').trim()}>Save</Button>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs text-slate-500">{stats.tier}</p>
+                  {stats.tier !== UserTier.SCHOLAR && (
+                    <Button size="xs" variant="primary" onClick={() => { setShowProfileMenu(false); setShowMembershipModal(true); }}>Upgrade</Button>
+                  )}
+                </div>
+              </form>
+              {authConfigured && (
+                authUser ? (
+                  <div className="flex items-center justify-between gap-2 rounded-lg border-2 border-green-300 bg-green-50 px-2 py-1.5">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-green-800">Synced · {providerLabel(authUser)}</p>
+                      <p className="text-xs font-bold truncate" title={authUser.email || authUser.phoneNumber || undefined}>{authUser.email || authUser.phoneNumber || authUser.displayName || 'Signed in'}</p>
+                    </div>
+                    <Button size="xs" variant="secondary" onClick={handleSignOut}>Sign out</Button>
+                  </div>
+                ) : (
+                  <MenuItem icon={<Lock size={16} />} title="Sign in" hint="Keep your streak, points and bookmarks on every device" onClick={() => { setShowProfileMenu(false); setShowAuthModal(true); }} />
+                )
+              )}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-orange-50 rounded-lg p-2" title="Read something on consecutive days to keep it going">
+                  <p className="font-black text-lg leading-none flex items-center justify-center gap-0.5"><Flame size={14} className="text-orange-500 fill-orange-500" />{stats.streak}</p>
+                  <p className="text-[10px] uppercase text-slate-500 mt-0.5">day{stats.streak === 1 ? '' : 's'} in a row</p>
+                </div>
+                <div className="bg-slate-50 rounded-lg p-2" title="Points for reading, marking and answering quizzes"><p className="font-black text-lg leading-none">{stats.xp}</p><p className="text-[10px] uppercase text-slate-500 mt-0.5">points</p></div>
+                <div className="bg-slate-50 rounded-lg p-2" title="Chapters you marked as read"><p className="font-black text-lg leading-none">{stats.chaptersRead}</p><p className="text-[10px] uppercase text-slate-500 mt-0.5">chapters read</p></div>
+              </div>
+              <MenuItem icon={<Library size={16} />} title="My study" hint="Highlights, notes, bookmarks, where you left off" tone="accent" onClick={() => { setShowProfileMenu(false); setShowStudyLibrary(true); }} />
+              <div className="flex items-center justify-between gap-2 text-xs font-bold px-1">
+                <span className="flex items-center gap-1"><Globe size={14} className="text-blue-500" /> Language</span>
+                <Select<string>
+                  ariaLabel="Language"
+                  size="sm"
+                  align="end"
+                  width={220}
+                  searchable
+                  value={language}
+                  onChange={handleLanguageChange}
+                  options={SUPPORTED_LANGUAGES.map(l => ({ value: l, label: l, locked: stats.tier === UserTier.FREE && l !== 'English' && l !== 'Zulu' }))}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-1 text-xs font-bold">
+                <button onClick={() => { setShowProfileMenu(false); setShowCharacterLibrary(true); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><User size={12} /> Who's who</button>
+                {stats.tier === UserTier.SCHOLAR && (
+                  <button onClick={() => { setShowProfileMenu(false); setShowOfflineManager(true); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><Archive size={12} /> Offline packs {offlinePacks.length}</button>
+                )}
+                <button onClick={() => { setShowProfileMenu(false); setShowMissionModal(true); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><Heart size={12} className="text-red-500" /> Our mission</button>
+                <button onClick={() => { setShowProfileMenu(false); setShowFounderModal(true); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><User size={12} /> The founder</button>
+                {!isPaid && <button onClick={() => { setShowProfileMenu(false); setShowUrgentModal(true); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><Heart size={12} className="text-red-500 fill-red-500" /> Support</button>}
+              </div>
+            </Popover>
           </div>
+
+          {/* You have wandered from the circle's chapter — the one line people look for, where they look for it */}
+          {selectedGroup && circleDrifted && (
+            <p className="w-full -mb-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-amber-900 bg-amber-100 border-2 border-amber-400 rounded-lg px-3 py-1.5">
+              <Users size={13} className="shrink-0" />
+              <span className="min-w-0 truncate"><b>{selectedGroup.name}</b> is reading <b>{circleLabel}</b> right now.</span>
+              <button type="button" onClick={() => handleGoToGroupTarget(selectedGroup.id)} className="ml-auto inline-flex items-center gap-1 font-black underline underline-offset-2 hover:text-amber-700">Read with them <ArrowRightIcon /></button>
+              <button type="button" onClick={() => handleSetGroupTargetToCurrent(selectedGroup.id)} className="font-black underline underline-offset-2 hover:text-amber-700" title={`Move the circle to ${passageLabel} so everyone reads it with you`}>Bring them to {passageLabel}</button>
+            </p>
+          )}
         </div>
       </header>
 
-      {/* --- JOURNEYS & COMMUNITY --- */}
-      <section className="container mx-auto max-w-6xl px-4 md:px-8 py-8 space-y-6 print:hidden">
-        <GuidedJourneysBoard
-          journeys={GUIDED_JOURNEYS}
-          progressMap={journeyProgress}
-          activeJourneyId={activeJourneyId}
-          onStart={handleJourneyStartAndLaunch}
-          onResume={handleJourneyResume}
-          onJumpToChapter={triggerJourneyChapter}
-          onAbandon={handleJourneyReset}
-        />
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <CollaborativeHub
-            groups={studyGroups}
-            selectedGroupId={selectedGroupId}
-            displayName={profile.displayName}
-            onCreate={handleCreateGroup}
-            onJoin={handleJoinGroup}
-            onSelect={handleSelectGroup}
-            onSetTarget={handleSetGroupTarget}
-            onAddReflection={handleAddReflection}
-            onLeave={handleLeaveGroup}
-            onDisplayNameChange={(name) => setProfile(prev => ({ ...prev, displayName: name }))}
+      {/* Phone toolbar: the reading controls sit under the thumb instead of crowding the top bar */}
+      <nav
+        aria-label="Reading controls"
+        className="md:hidden fixed inset-x-0 bottom-0 z-40 bg-white border-t-4 border-black print:hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="px-3 py-2 flex items-center gap-2">
+          <Segmented
+            ariaLabel="How to read"
+            value={readerMode}
+            onChange={(m) => switchMode(m)}
+            className="flex-1"
+            items={[
+              { value: 'read', label: 'Read', icon: <BookOpen size={14} /> },
+              { value: 'study', label: 'Study', icon: <Brain size={14} /> },
+              { value: 'comic', label: 'Comic', icon: <Palette size={14} /> },
+            ]}
           />
-          <CharacterBuilder
-            heroes={customHeroes}
-            activeHeroIds={activeHeroIds}
-            onCreate={handleCreateHero}
-            onToggle={handleToggleHero}
-            onDelete={handleDeleteHero}
-          />
+          <IconButton
+            label="Quiz on this chapter"
+            variant="accent"
+            onClick={() => handleQuiz()}
+            disabled={!chapterText || chapterText.length === 0 || isChapterTextLoading}
+          >
+            <Brain size={18} />
+          </IconButton>
+          <IconButton
+            label="Read with others"
+            variant={selectedGroup ? 'success' : 'secondary'}
+            onClick={() => setCommunityDrawer('circle')}
+          >
+            <Users size={18} />
+          </IconButton>
         </div>
-      </section>
+      </nav>
+
+      <ScriptureSourceBar
+        label={passageLabel}
+        source={chapterTextSource}
+        provenance={chapterProvenance}
+        verseCount={chapterText?.length ?? 0}
+        loading={isChapterTextLoading}
+        error={chapterTextError}
+        stats={storeStats}
+      />
 
       {/* --- MAIN CONTENT --- */}
-      <main className="container mx-auto max-w-6xl p-4 md:p-8 min-h-[60vh]">
-        {error && <div className="bg-red-100 border-l-8 border-red-600 p-6 mb-8 rounded shadow text-red-700 font-bold">{error}</div>}
-
-        {!isGeneratingScript && panels.length === 0 && !error && (
-          <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
-             <div className="bg-white p-8 rounded-full border-4 border-dashed border-gray-300 mb-6"><BookOpen size={64} className="text-gray-300" /></div>
-             <h2 className="comic-font text-4xl text-gray-400 mb-2">Ready to Read?</h2>
-             <p className="text-gray-500 max-w-md">Select a book, chapter, and art style above.</p>
+      <main className={cx('container mx-auto p-4 md:p-8 min-h-[60vh]', readerMode === 'comic' ? 'max-w-7xl' : 'max-w-[1440px]')}>
+        {error && (
+          <div role="alert" className="bg-red-100 border-l-8 border-red-600 p-4 mb-6 rounded shadow text-red-800 font-bold flex items-start justify-between gap-3">
+            <span>{error}</span>
+            <IconButton label="Dismiss" size="sm" onClick={() => setError(null)}><X size={14} /></IconButton>
           </div>
         )}
 
-        {isGeneratingScript && <div className="flex flex-col items-center justify-center py-20"><Loader text={`Visualizing ${selectedBook} ${selectedChapter}...`} /></div>}
+        {/* Comic toolbar: art style, your cast, the AI verse-by-verse generator */}
+        {readerMode === 'comic' && (
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-6 print:hidden">
+            <Select<ArtStyle>
+              ariaLabel="Art style"
+              size="sm"
+              width={280}
+              icon={<Palette size={14} className="text-purple-600" />}
+              value={artStyle}
+              onChange={handleArtStyleChange}
+              options={artStyleOptions}
+              buttonClassName="border-purple-500 text-purple-900 bg-purple-50 hover:bg-purple-100"
+            />
+            <Button size="sm" variant="secondary" onClick={() => setCommunityDrawer('forge')}>
+              <Users size={14} /> Cast{activeHeroIds.length ? ` · ${activeHeroIds.length}` : ''}
+            </Button>
+            <Button size="sm" variant="danger" onClick={(e) => handleGenerate(e)} disabled={isGeneratingScript} title="An AI-written script with one panel per verse. Uses AI credits.">
+              {isGeneratingScript ? <RefreshCw className="animate-spin" size={14} /> : <Sparkles size={14} />} Generate verse-by-verse comic
+            </Button>
+            {panels.length > 0 && (
+              <Button size="sm" variant="ghost" onClick={() => setPanels([])}>Back to scenes</Button>
+            )}
+          </div>
+        )}
 
-        {panels.length > 0 && !isGeneratingScript && (
+        {/* Read / Study */}
+        {readerMode !== 'comic' && chapterText && chapterText.length > 0 && (
+          <ScriptureReader
+            mode={readerMode}
+            chapterKey={markChapterKey(tradition, selectedBookSlug || selectedBook, tradition === 'quran' ? 1 : selectedChapter)}
+            label={passageLabel}
+            translationName={chapterTextSource?.displayName || ''}
+            license={chapterTextSource?.license || ''}
+            verses={chapterText}
+            verseLabel={tradition === 'quran' ? 'Ayah' : 'Verse'}
+            isQuran={tradition === 'quran'}
+            canPrev={!!prevPassage}
+            canNext={!!nextPassage}
+            onPrev={goPrev}
+            onNext={goNext}
+            scenes={sceneResult?.status === 'ready' ? sceneResult.scenes : []}
+            illustrating={illustrating || scenesLoading}
+            onIllustrate={illustrateCurrentChapter}
+            contextSummary={chapterContext?.context?.summary}
+            context={chapterContext?.context ?? null}
+            onQuiz={() => handleQuiz()}
+            nextLabel={nextPassage?.label}
+            onReflect={() => setShowNotes(true)}
+            chapterNote={notes[chapterNoteKey] || ''}
+            onSaveChapterNote={saveChapterNote}
+            author={profile.displayName.trim() || undefined}
+            language={translationLanguage(translationMeta.primary)}
+            companion={companionText}
+            onSwapCompanion={companionText ? swapCompanion : undefined}
+            onCompanionOff={companionText ? () => setCompanionId(null) : undefined}
+            circleName={selectedGroup?.name}
+            onShareSelection={selectedGroup ? (sel) => { setShareSelection(sel); setShareDraft(''); } : undefined}
+            onSelectionChange={setReaderSelection}
+            onModeChange={(m) => switchMode(m, false)}
+            chapterCount={chapterCount}
+            currentChapter={selectedChapter}
+            extraRail={railCards}
+            focusVerses={focusVerses}
+            onFocusVersesHandled={() => setFocusVerses(null)}
+            completed={currentChapterDone}
+            onComplete={markChapterRead}
+            compareTranslations={async (verse) => {
+              const manifest = await loadManifest(tradition);
+              const current = chapterTextSource?.versions?.[0] || selectedTranslation;
+              const others = manifest.translations.filter(t => t.isPublicDomain && t.id !== current);
+              const rows = await Promise.all(others.map(async t => {
+                try {
+                  const r = await loadChapter(tradition, t.id, selectedBookSlug || selectedBook, selectedChapter, { allowAI: false });
+                  const v = r?.verses.find(x => x.verse === verse);
+                  return v ? { name: t.displayName, text: v.text } : null;
+                } catch { return null; }
+              }));
+              return rows.filter((r): r is { name: string; text: string } => !!r);
+            }}
+          />
+        )}
+        {readerMode !== 'comic' && isChapterTextLoading && (
+          <div className="flex justify-center py-16"><Loader text={`Opening ${selectedBook}…`} /></div>
+        )}
+        {readerMode !== 'comic' && !isChapterTextLoading && (!chapterText || chapterText.length === 0) && (
+          <div className="text-center py-16 text-slate-500 font-bold">{chapterTextError || 'Pick a book above to start reading.'}</div>
+        )}
+
+        {readerMode === 'study' && chapterText && chapterText.length > 0 && !isGeneratingScript && (
+          <ChapterContextPanel
+            label={passageLabel}
+            context={chapterContext?.context ?? null}
+            source={chapterContext?.source ?? null}
+            status={contextLoading ? 'loading' : (chapterContext?.status ?? 'unavailable')}
+          />
+        )}
+
+        {/* Comic: the illustrated edition */}
+        {readerMode === 'comic' && chapterText && chapterText.length > 0 && !isGeneratingScript && panels.length === 0 && (
+          <ScenesView
+            label={passageLabel}
+            verseLabel={tradition === 'quran' ? 'Ayah' : 'Verse'}
+            scenes={sceneResult?.scenes ?? []}
+            verses={chapterText}
+            status={scenesLoading || (!sceneResult && isChapterTextLoading) ? 'loading' : (sceneResult?.status ?? 'unavailable')}
+            illustrating={illustrating}
+            onIllustrate={illustrateCurrentChapter}
+            canNext={!!nextPassage}
+            onNext={goNext}
+            onQuiz={() => handleQuiz()}
+            nextLabel={nextPassage?.label}
+            onReflect={() => setShowNotes(true)}
+            completed={currentChapterDone}
+            onComplete={markChapterRead}
+            notes={comicNotes}
+            onOpenNote={(key) => { void openPassage({ tradition, bookSlug: selectedBookSlug ?? undefined, bookName: selectedBook, chapter: tradition === 'quran' ? 1 : selectedChapter, verses: versesOfKey(key), mode: 'read' }); }}
+          />
+        )}
+
+        {readerMode === 'comic' && !isGeneratingScript && panels.length === 0 && !error && (!chapterText || chapterText.length === 0) && (
+          <div className="flex flex-col items-center justify-center py-20 text-center opacity-60">
+            <div className="bg-white p-8 rounded-full border-4 border-dashed border-gray-300 mb-6"><BookOpen size={64} className="text-gray-300" /></div>
+            <h2 className="comic-font text-4xl text-gray-400 mb-2">Ready to read?</h2>
+            <p className="text-gray-500 max-w-md">Pick a book and chapter at the top.</p>
+          </div>
+        )}
+
+        {isGeneratingScript && <div className="flex flex-col items-center justify-center py-20"><Loader text={`Visualizing ${passageLabel}...`} /></div>}
+
+        {readerMode === 'comic' && panels.length > 0 && !isGeneratingScript && (
           <div className="animate-fade-in pb-10">
-            {/* Title & Toolbar */}
             <div className="text-center mb-12 mt-4 relative">
-               <div className="absolute top-0 right-0 flex gap-2 print:hidden z-10">
-                 {/* STORY MODE BUTTON */}
-                 <button 
-                    onClick={() => {
-                        setStoryModeIndex(0);
-                    }} 
-                    className="p-2 bg-blue-500 text-white border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-blue-600 relative group" 
-                    title="Story Mode (Movie)"
-                 >
-                    <Maximize2 size={20} />
-                 </button>
-                 
-                 {characters.length > 0 && (
-                   <button onClick={() => setShowCharacters(true)} className="p-2 bg-pink-100 text-pink-900 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-pink-200" title="Chapter Characters"><User size={20} /></button>
-                 )}
-                 <button onClick={toggleBookmark} className={`p-2 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${isBookmarked ? 'bg-yellow-400' : 'bg-white hover:bg-gray-100'}`} title="Bookmark"><Bookmark size={20} fill={isBookmarked ? "black" : "none"} /></button>
-                 <button onClick={() => setShowNotes(true)} className="p-2 bg-white border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-gray-100" title="Notes"><Edit3 size={20} /></button>
-                 <button onClick={handleQuiz} className="p-2 bg-purple-100 border-2 border-black rounded shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-purple-200 text-purple-900" title="Quiz"><Brain size={20} /></button>
-               </div>
+              <div className="absolute top-0 right-0 flex gap-2 print:hidden z-10">
+                <IconButton label="Story mode (full screen)" variant="secondary" onClick={() => setStoryModeIndex(0)} className="bg-blue-500 text-white hover:bg-blue-600"><Maximize2 size={18} /></IconButton>
+                {characters.length > 0 && <IconButton label="Chapter characters" onClick={() => setShowCharacters(true)} className="bg-pink-100 text-pink-900 hover:bg-pink-200"><User size={18} /></IconButton>}
+                <IconButton label={isBookmarked ? 'Remove bookmark' : 'Bookmark this chapter'} onClick={toggleBookmark} className={isBookmarked ? 'bg-yellow-400' : ''}><Bookmark size={18} fill={isBookmarked ? 'black' : 'none'} /></IconButton>
+                <IconButton label="Chapter notes" onClick={() => setShowNotes(true)}><Edit3 size={18} /></IconButton>
+              </div>
 
               <div className="inline-block bg-white border-4 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transform -rotate-1 relative max-w-2xl">
                 <div className="absolute -top-3 -left-3 w-6 h-6 rounded-full bg-red-500 border-2 border-black print:hidden"></div>
@@ -1630,7 +2438,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Panels Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 print:block print:columns-2">
               {panels.map((panel, idx) => (
                 <div key={panel.id} className="print:mb-8 print:break-inside-avoid">
@@ -1639,286 +2446,376 @@ const App: React.FC = () => {
               ))}
             </div>
 
-            {/* Life Application Section */}
             {lifeApplication && (
-               <div className="mt-16 bg-blue-50 border-4 border-black p-8 rounded-xl shadow-[8px_8px_0px_0px_#1e3a8a] relative print:break-inside-avoid">
-                  <div className="absolute -top-6 left-10 bg-blue-800 text-white px-4 py-2 border-2 border-black font-bold uppercase tracking-widest text-lg rotate-1">
-                     Why This Matters Today
-                  </div>
-                  <p className="text-xl font-medium leading-relaxed font-serif text-blue-900 mt-4">
-                     {lifeApplication}
-                  </p>
-               </div>
+              <div className="mt-16 bg-blue-50 border-4 border-black p-8 rounded-xl shadow-[8px_8px_0px_0px_#1e3a8a] relative print:break-inside-avoid">
+                <div className="absolute -top-6 left-10 bg-blue-800 text-white px-4 py-2 border-2 border-black font-bold uppercase tracking-widest text-lg rotate-1">
+                  Why this matters today
+                </div>
+                <p className="text-xl font-medium leading-relaxed font-serif text-blue-900 mt-4">{lifeApplication}</p>
+              </div>
             )}
 
-            {/* Bottom Actions */}
             <div className="mt-16 flex flex-col items-center gap-6 print:hidden">
-               <button onClick={handleQuiz} className="bg-purple-600 text-white font-black py-4 px-10 rounded-full border-4 border-black hover:bg-purple-500 transition-transform hover:scale-105 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] uppercase text-xl flex items-center gap-3">
-                  <Brain size={24} /> Test Your Knowledge
-               </button>
-               <div className="flex gap-4">
-                  <button onClick={handleDownload} className="bg-white px-4 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold flex items-center gap-2 hover:bg-gray-50 relative">
-                    <Download size={18} /> Save PDF
-                    {stats.tier !== UserTier.SCHOLAR && <div className="absolute -top-2 -right-2 bg-slate-900 text-white rounded-full p-1"><Lock size={10}/></div>}
-                  </button>
-                  {stats.tier === UserTier.SCHOLAR && (
-                    <button onClick={handleSaveOfflinePack} className="bg-slate-900 text-white px-4 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold flex items-center gap-2 hover:bg-slate-800">
-                      <Archive size={18} /> Save Offline Pack
-                    </button>
-                  )}
-                  <button onClick={() => { setSelectedChapter(c => c + 1); window.scrollTo(0,0); }} className="bg-yellow-400 px-6 py-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] font-bold flex items-center gap-2 hover:bg-yellow-300">Next Chapter <ChevronRight size={18} /></button>
-               </div>
+              <Button variant="accent" size="lg" onClick={() => handleQuiz()}><Brain size={22} /> Test your knowledge</Button>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button variant="secondary" square onClick={handleDownload} className="relative">
+                  <Download size={18} /> Save PDF
+                  {stats.tier !== UserTier.SCHOLAR && <span className="absolute -top-2 -right-2 bg-slate-900 text-white rounded-full p-1"><Lock size={10} /></span>}
+                </Button>
+                {stats.tier === UserTier.SCHOLAR && (
+                  <Button variant="dark" square onClick={handleSaveOfflinePack}><Archive size={18} /> Save offline pack</Button>
+                )}
+                <Button variant="primary" square onClick={goNext} disabled={!nextPassage}>{nextPassage ? `Next: ${nextPassage.label}` : 'Last chapter'} <ChevronRight size={18} /></Button>
+              </div>
             </div>
           </div>
         )}
       </main>
 
-      {/* --- STORY MODE OVERLAY --- */}
+      {/* --- TOGETHER DRAWER: circle, paths, cast --- */}
+      <Drawer
+        open={communityDrawer !== null}
+        onClose={() => setCommunityDrawer(null)}
+        label="Read with others"
+        header={
+          <Segmented<'circle' | 'journeys' | 'forge'>
+            ariaLabel="Section"
+            size="sm"
+            value={communityDrawer ?? 'circle'}
+            onChange={(k) => setCommunityDrawer(k)}
+            items={[
+              { value: 'circle', label: 'Circle', icon: <Users size={12} /> },
+              { value: 'journeys', label: 'Paths', icon: <Compass size={12} /> },
+              { value: 'forge', label: 'Cast', icon: <Sparkles size={12} /> },
+            ]}
+          />
+        }
+      >
+        {communityDrawer === 'journeys' && (
+          <GuidedJourneysBoard
+            journeys={GUIDED_JOURNEYS}
+            progressMap={journeyProgress}
+            activeJourneyId={activeJourneyId}
+            onStart={(id) => { handleJourneyStartAndLaunch(id); setCommunityDrawer(null); }}
+            onResume={(id) => { handleJourneyResume(id); setCommunityDrawer(null); }}
+            onJumpToChapter={(id, idx) => { triggerJourneyChapter(id, idx); setCommunityDrawer(null); }}
+            onAbandon={handleJourneyReset}
+          />
+        )}
+        {communityDrawer === 'circle' && (
+          <CollaborativeHub
+            groups={groups}
+            selectedGroupId={selectedGroupId}
+            displayName={profile.displayName}
+            tradition={tradition}
+            currentPassage={{ book: selectedBook, chapter: tradition === 'quran' ? 1 : selectedChapter, label: passageLabel }}
+            attachable={selectionPointer() ?? null}
+            actor={circleActor}
+            onSignIn={authConfigured ? () => { setCommunityDrawer(null); setShowAuthModal(true); } : undefined}
+            onCreate={handleCreateGroup}
+            onJoin={handleJoinGroup}
+            onSelect={handleSelectGroup}
+            onRename={handleRenameGroup}
+            onSetTargetToCurrent={handleSetGroupTargetToCurrent}
+            onSetTarget={handleSetGroupTarget}
+            onGoToTarget={handleGoToGroupTarget}
+            onInvite={handleInviteGroup}
+            onAddReflection={handleAddReflection}
+            onOpenPointer={openPointer}
+            onLeave={handleLeaveGroup}
+            onDisplayNameChange={(name) => setProfile(prev => ({ ...prev, displayName: name }))}
+          />
+        )}
+        {communityDrawer === 'forge' && (
+          <CharacterBuilder
+            heroes={customHeroes}
+            activeHeroIds={activeHeroIds}
+            heroLimit={HERO_LIMIT}
+            onCreate={handleCreateHero}
+            onToggle={handleToggleHero}
+            onDelete={handleDeleteHero}
+          />
+        )}
+      </Drawer>
+
+      {/* --- STORY MODE --- */}
       {storyModeIndex !== null && panels.length > 0 && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-4">
-           {/* Top Controls */}
-           <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
-              <div className="text-white">
-                  <h3 className="comic-font text-2xl tracking-widest">{selectedBook} {selectedChapter}</h3>
-                  <p className="text-gray-400 text-sm">Panel {storyModeIndex + 1} of {panels.length}</p>
-              </div>
-              <div className="flex gap-3">
-                  <button 
-                    onClick={() => setIsStoryPlaying(!isStoryPlaying)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold border-2 border-white transition-all ${isStoryPlaying ? 'bg-red-600 text-white animate-pulse' : 'bg-transparent text-white hover:bg-white/20'}`}
-                  >
-                     {isStoryPlaying ? <><PauseCircle size={20}/> Playing...</> : <><PlayCircle size={20}/> Play Movie</>}
-                  </button>
-                  <button onClick={() => { setIsStoryPlaying(false); setStoryModeIndex(null); }} className="text-white hover:text-red-400 p-2"><X size={32}/></button>
-              </div>
-           </div>
-           
-           <div className="flex-grow flex items-center justify-center w-full max-w-5xl relative">
-              {/* Prev Button */}
-              {storyModeIndex > 0 && (
-                <button 
-                  onClick={() => { setIsStoryPlaying(false); setStoryModeIndex(i => i! - 1); }} 
-                  className="absolute left-0 p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full z-20"
-                >
-                  <ChevronLeft size={48} />
-                </button>
-              )}
-
-              {/* Main Card */}
-              <div className="w-full max-h-[85vh] bg-white rounded-lg overflow-hidden flex flex-col shadow-2xl animate-fade-in duration-500">
-                 <div className="bg-yellow-100 p-6 border-b-2 border-black text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-2 h-full bg-red-500"></div>
-                    <p className="font-comic font-bold text-xl md:text-3xl text-slate-900 leading-snug">
-                       {panels[storyModeIndex].narrative}
-                    </p>
-                 </div>
-                 
-                 <div className="flex-grow bg-slate-900 flex items-center justify-center overflow-hidden relative">
-                    {panels[storyModeIndex].isLoadingImage ? (
-                        <div className="text-white comic-font text-2xl animate-pulse">Painting Scene...</div>
-                    ) : (
-                        <img 
-                          src={panels[storyModeIndex].imageUrl} 
-                          className="max-h-full max-w-full object-contain shadow-lg" 
-                          alt="Scene"
-                        />
-                    )}
-                    {/* Verse overlay */}
-                    <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-xs font-bold uppercase backdrop-blur-sm">
-                       {panels[storyModeIndex].verseReference}
-                    </div>
-                 </div>
-
-                 <div className="p-6 bg-white border-t-2 border-black min-h-[120px]">
-                    {panels[storyModeIndex].speechBubbles.length > 0 ? (
-                       <div className="space-y-3">
-                           {panels[storyModeIndex].speechBubbles.map((b, i) => (
-                              <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                                <div className={`max-w-[80%] rounded-2xl px-4 py-2 border-2 border-black ${i % 2 === 0 ? 'bg-white rounded-bl-none' : 'bg-blue-50 rounded-br-none'}`}>
-                                    <span className="block text-[10px] font-bold uppercase text-gray-500 mb-1">{b.speaker}</span>
-                                    <p className="font-comic text-xl">{b.text}</p>
-                                </div>
-                              </div>
-                           ))}
-                       </div>
-                    ) : <p className="text-gray-400 italic text-center py-4">...Visual Scene...</p>}
-                 </div>
-              </div>
-
-              {/* Next Button */}
-              {storyModeIndex < panels.length - 1 && (
-                <button 
-                  onClick={() => { setIsStoryPlaying(false); setStoryModeIndex(i => i! + 1); }} 
-                  className="absolute right-0 p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full z-20"
-                >
-                  <ChevronRight size={48} />
-                </button>
-              )}
-           </div>
-        </div>
-      )}
-
-      {/* --- CHARACTER CARD MODAL (Quick View) --- */}
-      {showCharacters && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowCharacters(false)}></div>
-          <div className="relative bg-white w-full max-w-3xl rounded-xl border-4 border-black p-8 max-h-[80vh] overflow-y-auto">
-             <button onClick={() => setShowCharacters(false)} className="absolute top-4 right-4"><X size={24}/></button>
-             <h2 className="text-3xl comic-font mb-6 border-b-4 border-yellow-400 inline-block">Chapter Figures</h2>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {characters.map((char, idx) => (
-                   <div key={idx} className="bg-slate-50 border-2 border-black p-4 rounded-lg shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] flex gap-4">
-                      <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center border-2 border-black flex-shrink-0">
-                         <User size={32} />
-                      </div>
-                      <div>
-                         <h3 className="font-bold text-xl uppercase">{char.name}</h3>
-                         <span className="text-xs font-bold text-white bg-blue-600 px-2 py-0.5 rounded">{char.role}</span>
-                         <p className="text-sm mt-2 text-gray-700">{char.description}</p>
-                      </div>
-                   </div>
-                ))}
-             </div>
-          </div>
-        </div>
-      )}
-
-      {/* --- EXPLAIN MODAL ENHANCED --- */}
-      {explanation && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setExplanation(null)}></div>
-          <div className="relative bg-white w-full max-w-2xl rounded-xl border-4 border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col overflow-hidden max-h-[90vh]">
-            
-            <div className="bg-blue-600 p-4 text-white flex justify-between items-center border-b-4 border-black">
-                <div className="flex items-center gap-2">
-                   <Lightbulb className="fill-yellow-400 text-yellow-400" size={28} />
-                   <h3 className="comic-font text-2xl tracking-wide">Context Booster</h3>
-                </div>
-                <button onClick={() => setExplanation(null)} className="hover:text-red-300"><X size={24}/></button>
+        <EscapeLayer onClose={() => { setIsStoryPlaying(false); setStoryModeIndex(null); }}>
+        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Story mode">
+          <div className="absolute top-4 left-4 right-4 flex justify-between items-start z-10">
+            <div className="text-white">
+              <h3 className="comic-font text-2xl tracking-widest">{selectedBook} {selectedChapter}</h3>
+              <p className="text-gray-400 text-sm">Panel {storyModeIndex + 1} of {panels.length}</p>
             </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setIsStoryPlaying(!isStoryPlaying)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold border-2 border-white transition-all ${isStoryPlaying ? 'bg-red-600 text-white animate-pulse' : 'bg-transparent text-white hover:bg-white/20'}`}
+              >
+                {isStoryPlaying ? <><PauseCircle size={20} /> Playing…</> : <><PlayCircle size={20} /> Play with narration</>}
+              </button>
+              <IconButton label="Close story mode" onClick={() => { setIsStoryPlaying(false); setStoryModeIndex(null); }} className="bg-white/10 text-white border-white hover:bg-white/20 shadow-none"><X size={20} /></IconButton>
+            </div>
+          </div>
 
-            <div className="p-6 overflow-y-auto">
-                <div className="bg-yellow-50 p-4 border-l-4 border-yellow-400 mb-6 italic text-gray-700">
-                    "{explanation.targetText}"
-                </div>
-                
-                {stats.tier === UserTier.FREE && stats.dailyAiUsage >= TIER_LIMITS[UserTier.FREE].ai && (
-                    <div className="mb-4 bg-red-100 text-red-800 p-3 rounded text-sm border border-red-200 flex items-center gap-2">
-                        <Lock size={16}/> Daily limit reached ({stats.dailyAiUsage}/{TIER_LIMITS[UserTier.FREE].ai}). 
-                        <button onClick={() => setShowMembershipModal(true)} className="underline font-bold">Upgrade for more.</button>
-                    </div>
-                )}
-                
-                {stats.tier === UserTier.EXPLORER && stats.dailyAiUsage >= TIER_LIMITS[UserTier.EXPLORER].ai && (
-                    <div className="mb-4 bg-red-100 text-red-800 p-3 rounded text-sm border border-red-200 flex items-center gap-2">
-                        <Lock size={16}/> Explorer limit reached ({stats.dailyAiUsage}/{TIER_LIMITS[UserTier.EXPLORER].ai}). 
-                        <button onClick={() => setShowMembershipModal(true)} className="underline font-bold">Go Unlimited.</button>
-                    </div>
-                )}
-
-                {!explanation.activeType ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button onClick={() => handleFetchExplanation('simple')} className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left group">
-                            <div className="bg-blue-100 p-2 rounded-full group-hover:bg-blue-200"><Info size={20} className="text-blue-600"/></div>
-                            <div><div className="font-bold">Simple Summary</div><div className="text-xs text-gray-500">Plain language explanation</div></div>
-                        </button>
-                        <button onClick={() => handleFetchExplanation('deep')} className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all text-left group">
-                            <div className="bg-purple-100 p-2 rounded-full group-hover:bg-purple-200"><Book size={20} className="text-purple-600"/></div>
-                            <div><div className="font-bold">Deep Context</div><div className="text-xs text-gray-500">Theological commentary</div></div>
-                        </button>
-                        <button onClick={() => handleFetchExplanation('historical')} className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-amber-500 hover:bg-amber-50 transition-all text-left group">
-                            <div className="bg-amber-100 p-2 rounded-full group-hover:bg-amber-200"><User size={20} className="text-amber-600"/></div>
-                            <div><div className="font-bold">History & Culture</div><div className="text-xs text-gray-500">Background of the time</div></div>
-                        </button>
-                        <button onClick={() => handleFetchExplanation('word_study')} className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-teal-500 hover:bg-teal-50 transition-all text-left group">
-                            <div className="bg-teal-100 p-2 rounded-full group-hover:bg-teal-200"><Globe size={20} className="text-teal-600"/></div>
-                            <div><div className="font-bold">Word Study</div><div className="text-xs text-gray-500">Hebrew/Greek meanings</div></div>
-                        </button>
-                        <button onClick={() => handleFetchExplanation('application')} className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition-all text-left group md:col-span-2">
-                            <div className="bg-green-100 p-2 rounded-full group-hover:bg-green-200"><Sparkles size={20} className="text-green-600"/></div>
-                            <div><div className="font-bold">Life Application</div><div className="text-xs text-gray-500">How to apply this today</div></div>
-                        </button>
-                    </div>
+          <div className="flex-grow flex items-center justify-center w-full max-w-5xl relative">
+            {storyModeIndex > 0 && (
+              <button onClick={() => { setIsStoryPlaying(false); setStoryModeIndex(i => i! - 1); }} className="absolute left-0 p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full z-20" aria-label="Previous panel">
+                <ChevronLeft size={48} />
+              </button>
+            )}
+            <div className="w-full max-h-[85vh] bg-white rounded-lg overflow-hidden flex flex-col shadow-2xl animate-fade-in">
+              <div className="bg-yellow-100 p-6 border-b-2 border-black text-center relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-2 h-full bg-red-500"></div>
+                <p className="font-comic font-bold text-xl md:text-3xl text-slate-900 leading-snug">{panels[storyModeIndex].narrative}</p>
+              </div>
+              <div className="flex-grow bg-slate-900 flex items-center justify-center overflow-hidden relative">
+                {panels[storyModeIndex].isLoadingImage ? (
+                  <div className="text-white comic-font text-2xl animate-pulse">Painting scene…</div>
                 ) : (
-                    <div className="animate-fade-in">
-                        {explanation.loading ? (
-                            <Loader text="Analyzing..." />
-                        ) : (
-                            <div>
-                                <h4 className="font-bold text-lg mb-4 capitalize border-b pb-2">{explanation.activeType.replace('_', ' ')}</h4>
-                                <p className="text-lg leading-relaxed font-serif text-slate-800">
-                                    {explanation.result}
-                                </p>
-                                <button 
-                                    onClick={() => setExplanation(prev => ({ ...prev!, activeType: '' }))}
-                                    className="mt-6 text-sm text-blue-600 hover:underline flex items-center gap-1"
-                                >
-                                    <ChevronLeft size={16} /> Choose another topic
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                  <img src={panels[storyModeIndex].imageUrl} className="max-h-full max-w-full object-contain shadow-lg" alt="Scene" />
                 )}
+                <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded text-xs font-bold uppercase backdrop-blur-sm">{panels[storyModeIndex].verseReference}</div>
+              </div>
+              <div className="p-6 bg-white border-t-2 border-black min-h-[120px]">
+                {panels[storyModeIndex].speechBubbles.length > 0 ? (
+                  <div className="space-y-3">
+                    {panels[storyModeIndex].speechBubbles.map((b, i) => (
+                      <div key={i} className={`flex ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
+                        <div className={`max-w-[80%] rounded-2xl px-4 py-2 border-2 border-black ${i % 2 === 0 ? 'bg-white rounded-bl-none' : 'bg-blue-50 rounded-br-none'}`}>
+                          <span className="block text-[10px] font-bold uppercase text-gray-500 mb-1">{b.speaker}</span>
+                          <p className="font-comic text-xl">{b.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : <p className="text-gray-400 italic text-center py-4">…</p>}
+              </div>
             </div>
+            {storyModeIndex < panels.length - 1 && (
+              <button onClick={() => { setIsStoryPlaying(false); setStoryModeIndex(i => i! + 1); }} className="absolute right-0 p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full z-20" aria-label="Next panel">
+                <ChevronRight size={48} />
+              </button>
+            )}
           </div>
         </div>
-      )}
-      
-      {/* --- QUIZ MODAL --- */}
-      {showQuiz && quizData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowQuiz(false)}></div>
-          <div className="relative bg-white w-full max-w-2xl rounded-xl border-4 border-black shadow-[10px_10px_0px_0px_#7c3aed] p-8 max-h-[90vh] overflow-y-auto">
-             <button onClick={() => setShowQuiz(false)} className="absolute top-4 right-4"><X size={24}/></button>
-             <div className="text-center mb-8">
-               <Brain size={48} className="mx-auto text-purple-600 mb-2" />
-               <h2 className="comic-font text-4xl mb-2">Knowledge Check!</h2>
-               <p className="text-gray-500">Earn +20 XP for every correct answer.</p>
-             </div>
-             <div className="space-y-8">
-               {quizData.questions.map((q, qIdx) => (
-                 <div key={qIdx} className="bg-slate-50 p-6 rounded-lg border-2 border-slate-200">
-                   <h4 className="font-bold text-xl mb-4">{qIdx + 1}. {q.question}</h4>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                     {q.options.map((opt, oIdx) => (
-                       <button key={oIdx} onClick={(e) => {
-                          const btn = e.currentTarget;
-                          if (oIdx === q.correctAnswer) {
-                            btn.classList.add('bg-green-500', 'text-white', 'border-green-700');
-                            const xpGain = { ...stats, xp: stats.xp + 20 };
-                            setStats(xpGain);
-                            safeWrite(STORAGE_KEYS.stats, xpGain);
-                          } else {
-                            btn.classList.add('bg-red-500', 'text-white', 'border-red-700');
-                          }
-                       }} className="text-left p-3 bg-white border-2 border-gray-300 rounded font-medium hover:border-purple-500 transition-colors">{opt}</button>
-                     ))}
-                   </div>
-                   <details className="mt-4 text-sm text-gray-600 cursor-pointer">
-                     <summary className="font-bold text-purple-600 hover:underline">See Explanation</summary>
-                     <p className="mt-2 p-3 bg-purple-50 rounded italic">{q.explanation}</p>
-                   </details>
-                 </div>
-               ))}
-             </div>
-          </div>
-        </div>
+        </EscapeLayer>
       )}
 
-      {/* --- NOTES MODAL --- */}
-      {showNotes && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowNotes(false)}></div>
-          <div className="relative w-full max-w-md bg-yellow-50 h-full shadow-2xl p-6 border-l-4 border-black flex flex-col">
-            <div className="flex justify-between items-center mb-6"><h3 className="comic-font text-2xl">My Notes</h3><button onClick={() => setShowNotes(false)}><X size={24} /></button></div>
-            <div className="mb-2 font-bold text-gray-500 uppercase text-xs">{selectedBook} {selectedChapter}</div>
-            <textarea className="flex-grow w-full p-4 border-2 border-black rounded bg-white font-handwriting text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none shadow-inner" placeholder="Write your reflections here..." value={currentNote} onChange={(e) => setCurrentNote(e.target.value)} />
-            <button onClick={saveNote} className="mt-4 w-full bg-green-500 text-white font-bold py-3 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none flex items-center justify-center gap-2"><Save size={20} /> Save Note</button>
-          </div>
+      {/* --- CHAPTER CHARACTERS --- */}
+      <Dialog open={showCharacters} onClose={() => setShowCharacters(false)} title="Who is in this chapter" size="lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {characters.map((char, idx) => (
+            <div key={idx} className="bg-slate-50 border-2 border-black p-4 rounded-xl flex gap-4">
+              <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center border-2 border-black flex-shrink-0 font-black text-xl">{char.name.charAt(0)}</div>
+              <div>
+                <h3 className="font-black text-lg leading-tight">{char.name}</h3>
+                <Pill tone="blue">{char.role}</Pill>
+                <p className="text-sm mt-2 text-gray-700">{char.description}</p>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      </Dialog>
+
+      {/* --- EXPLAIN (Context Booster) --- */}
+      <Dialog open={!!explanation} onClose={() => setExplanation(null)} title="Understand this" eyebrow="Context booster" tone="purple" icon={<Lightbulb className="fill-yellow-300 text-yellow-300" size={26} />}>
+        {explanation && (
+          <>
+            <div className="bg-yellow-50 p-4 border-l-4 border-yellow-400 mb-6 italic text-gray-700">“{explanation.targetText}”</div>
+            {stats.tier === UserTier.FREE && stats.dailyAiUsage >= TIER_LIMITS[UserTier.FREE].ai && (
+              <div className="mb-4 bg-red-100 text-red-800 p-3 rounded text-sm border border-red-200 flex items-center gap-2">
+                <Lock size={16} /> Daily limit reached ({stats.dailyAiUsage}/{TIER_LIMITS[UserTier.FREE].ai}).
+                <button onClick={() => setShowMembershipModal(true)} className="underline font-bold">Upgrade for more.</button>
+              </div>
+            )}
+            {stats.tier === UserTier.EXPLORER && stats.dailyAiUsage >= TIER_LIMITS[UserTier.EXPLORER].ai && (
+              <div className="mb-4 bg-red-100 text-red-800 p-3 rounded text-sm border border-red-200 flex items-center gap-2">
+                <Lock size={16} /> Explorer limit reached ({stats.dailyAiUsage}/{TIER_LIMITS[UserTier.EXPLORER].ai}).
+                <button onClick={() => setShowMembershipModal(true)} className="underline font-bold">Go unlimited.</button>
+              </div>
+            )}
+            {!explanation.activeType ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {([
+                  ['simple', 'Plain words', 'What this says, simply', <Info size={20} className="text-blue-600" />, 'blue'],
+                  ['deep', 'Deeper meaning', 'What readers have drawn from it', <Book size={20} className="text-purple-600" />, 'purple'],
+                  ['historical', 'History & culture', 'The world it was written in', <User size={20} className="text-amber-600" />, 'amber'],
+                  ['word_study', 'Word study', 'Hebrew and Greek behind the words', <Globe size={20} className="text-teal-600" />, 'teal'],
+                  ['application', 'For my life', 'How people apply this today', <Sparkles size={20} className="text-green-600" />, 'green'],
+                ] as const).map(([type, title, sub, icon, tone]) => (
+                  <button
+                    key={type}
+                    onClick={() => handleFetchExplanation(type)}
+                    className={cx('flex items-center gap-3 p-4 border-[3px] border-slate-200 rounded-2xl text-left transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-300', `hover:border-${tone}-500 hover:bg-${tone}-50`, type === 'application' && 'md:col-span-2')}
+                  >
+                    <span className={`bg-${tone}-100 p-2 rounded-full`}>{icon}</span>
+                    <span><span className="block font-black">{title}</span><span className="block text-xs text-gray-500">{sub}</span></span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="animate-fade-in">
+                {explanation.loading ? (
+                  <Loader text="Thinking…" />
+                ) : (
+                  <div>
+                    <h4 className="font-black text-lg mb-4 capitalize border-b pb-2">{explanation.activeType.replace('_', ' ')}</h4>
+                    <p className="text-lg leading-relaxed font-serif text-slate-800 whitespace-pre-line">{explanation.result}</p>
+                    <Button variant="ghost" size="sm" className="mt-6 text-purple-700" onClick={() => setExplanation(prev => ({ ...prev!, activeType: '' }))}><ChevronLeft size={16} /> Ask something else</Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </Dialog>
+
+      {/* --- QUIZ --- */}
+      <Dialog
+        open={showQuiz && !!quizData}
+        onClose={() => setShowQuiz(false)}
+        title={`Quiz · ${passageLabel}`}
+        eyebrow={quizPick ? (quizPick.set.source === 'generated' ? 'Built from the text · works offline' : 'Comprehension quiz · stored offline') : undefined}
+        icon={<Brain size={26} className="text-purple-600" />}
+        footer={
+          quizData && (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="font-black text-sm">
+                {quizAnswered < quizTotal ? `${quizAnswered} of ${quizTotal} answered` : quizScore === quizTotal ? `Perfect · ${quizScore}/${quizTotal}` : `You got ${quizScore} of ${quizTotal}`}
+                <span className="text-slate-500 font-bold"> · +20 XP per correct answer</span>
+              </p>
+              <div className="flex gap-2">
+                <Button size="sm" variant="secondary" onClick={() => handleQuiz(true)}><RefreshCw size={14} /> Another quiz</Button>
+                {quizAnswered >= quizTotal && <Button size="sm" variant="primary" onClick={() => setShowQuiz(false)}>Back to reading</Button>}
+              </div>
+            </div>
+          )
+        }
+      >
+        {quizData && (
+          <div className="space-y-6" key={quizPick?.set.id ?? 'quiz'}>
+            {quizData.questions.map((q, qIdx) => {
+              const chosen = quizAnswers[qIdx];
+              const answered = chosen != null;
+              return (
+                <div key={qIdx} className="bg-slate-50 p-5 rounded-2xl border-2 border-slate-200">
+                  <h4 className="font-black text-lg mb-3">{qIdx + 1}. {q.question}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2" role="group" aria-label={`Question ${qIdx + 1}`}>
+                    {q.options.map((opt, oIdx) => {
+                      const isCorrect = oIdx === q.correctAnswer;
+                      const isChosen = chosen === oIdx;
+                      return (
+                        <button
+                          key={oIdx}
+                          type="button"
+                          disabled={answered}
+                          aria-pressed={isChosen}
+                          onClick={() => answerQuiz(qIdx, oIdx)}
+                          className={cx(
+                            'text-left p-3 border-[3px] rounded-xl font-bold transition-colors flex items-start gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-300',
+                            !answered && 'bg-white border-slate-300 hover:border-purple-500 hover:bg-purple-50',
+                            answered && isCorrect && 'bg-green-500 text-white border-green-700',
+                            answered && isChosen && !isCorrect && 'bg-red-500 text-white border-red-700',
+                            answered && !isChosen && !isCorrect && 'bg-white border-slate-200 text-slate-400',
+                          )}
+                        >
+                          <span className="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center text-[11px] shrink-0">{String.fromCharCode(65 + oIdx)}</span>
+                          <span>{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {answered && (
+                    <div className={cx('mt-3 p-3 rounded-xl text-sm border-2 animate-fade-in', chosen === q.correctAnswer ? 'bg-green-50 border-green-300 text-green-900' : 'bg-amber-50 border-amber-300 text-amber-900')}>
+                      <p className="font-black">{chosen === q.correctAnswer ? 'Right.' : `Not quite — it was ${String.fromCharCode(65 + q.correctAnswer)}.`}</p>
+                      <p className="mt-1">{q.explanation}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Dialog>
+
+      {/* --- SHARE A VERSE WITH THE CIRCLE (stays on the page) --- */}
+      <Dialog
+        open={!!shareSelection && !!selectedGroup}
+        onClose={() => setShareSelection(null)}
+        size="sm"
+        eyebrow={selectedGroup ? `To ${selectedGroup.name}` : undefined}
+        title={shareSelection?.label ?? ''}
+        icon={<Users size={22} className="text-green-600" />}
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button size="sm" variant="secondary" onClick={() => setShareSelection(null)}>Cancel</Button>
+            <Button
+              size="sm"
+              variant="success"
+              onClick={() => {
+                if (!shareSelection || !selectedGroup) return;
+                const clip = (t: string) => (t.length > 160 ? t.slice(0, 160).trim() + '…' : t);
+                const quote = shareSelection.companion
+                  ? `“${clip(shareSelection.text)}” (${chapterTextSource?.displayName || ''}) · “${clip(shareSelection.companion.text)}” (${shareSelection.companion.name})`
+                  : `“${clip(shareSelection.text)}”`;
+                const ref: PassagePointer = { tradition, book: selectedBook, chapter: tradition === 'quran' ? 1 : selectedChapter, verses: shareSelection.verses, label: shareSelection.label };
+                handleAddReflection(selectedGroup.id, `${shareDraft.trim() ? shareDraft.trim() + ' ' : ''}— ${quote}`, ref);
+                setShareSelection(null);
+                toast({ title: `Shared ${shareSelection.label} with ${selectedGroup.name}`, description: 'It sits in the circle card beside the text.' });
+              }}
+            >
+              <Send size={14} /> Share
+            </Button>
+          </div>
+        }
+      >
+        {shareSelection && (
+          <div className="space-y-3">
+            <blockquote className="bg-amber-50 border-l-4 border-amber-400 px-3 py-2 text-sm italic text-slate-700 max-h-40 overflow-y-auto">
+              “{shareSelection.text}”
+              {shareSelection.companion && <span className="block mt-1.5 text-xs not-italic text-slate-500"><b>{shareSelection.companion.name}:</b> {shareSelection.companion.text}</span>}
+            </blockquote>
+            <TextArea
+              data-autofocus
+              value={shareDraft}
+              onChange={e => setShareDraft(e.target.value)}
+              placeholder="Why this one? (optional)"
+              className="min-h-[72px]"
+              onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') (e.currentTarget.closest('[role=dialog]')?.querySelector('button.bg-green-400') as HTMLButtonElement | null)?.click(); }}
+            />
+          </div>
+        )}
+      </Dialog>
+
+      {/* --- CHAPTER NOTES --- */}
+      <Drawer open={showNotes} onClose={() => setShowNotes(false)} width="md" label="Chapter notes" header={
+        <div>
+          <p className="comic-font text-2xl leading-none">Chapter notes</p>
+          <p className="text-[11px] text-slate-500 font-bold">{passageLabel}</p>
+        </div>
+      }>
+        <div className="flex flex-col h-full gap-3">
+          <TextArea
+            className="flex-1 min-h-[50vh] text-lg"
+            placeholder="What stood out? What do you want to remember?"
+            value={currentNote}
+            onChange={(e) => setCurrentNote(e.target.value)}
+            data-autofocus
+          />
+          <Button variant="success" block onClick={() => { saveNote(); toast({ title: 'Note saved', description: `Find it under My study → ${passageLabel}.` }); }}><Save size={18} /> Save note</Button>
+        </div>
+      </Drawer>
     </div>
   );
 };
 
-export default App;
+const AppRoot: React.FC = () => (
+  <UiProvider>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </UiProvider>
+);
+
+export default AppRoot;

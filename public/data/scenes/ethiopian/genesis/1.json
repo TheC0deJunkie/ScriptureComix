@@ -1,0 +1,54 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 5,
+      "title": "The First Day",
+      "caption": "In the beginning, the earth was formless, empty, and dark, covered by water (1:1-2). God commanded light to appear, separating it from the darkness (1:3-4). God named the light \"Day\" and the darkness \"Night,\" marking the first day (1:5).",
+      "visualPrompt": "A vast, dark, turbulent ocean fills the frame. A single, bright beam of light breaks through the darkness from above, illuminating a small part of the water's surface. The rest remains in deep shadow.",
+      "id": "s1"
+    },
+    {
+      "from": 6,
+      "to": 8,
+      "title": "The Sky and Waters",
+      "caption": "God commanded a firmament to separate the waters (1:6). God made this firmament, dividing the waters below from the waters above (1:7). God called this firmament \"Heaven,\" marking the second day (1:8).",
+      "visualPrompt": "A clear, vast sky (the firmament) stretches across the middle of the image, separating a calm, reflective body of water below from a layer of clouds or mist above. The light from the previous scene is now diffused, showing a soft, early morning glow.",
+      "id": "s2"
+    },
+    {
+      "from": 9,
+      "to": 13,
+      "title": "Land, Seas, and Plants",
+      "caption": "God commanded the waters under the sky to gather, revealing dry land (1:9). God named the dry land \"Earth\" and the gathered waters \"Seas,\" and saw that it was good (1:10). God then commanded the earth to produce grass, seed-bearing plants, and fruit trees (1:11). The earth produced these plants, and God saw that it was good, marking the third day (1:12-13).",
+      "visualPrompt": "A vibrant landscape emerges. In the foreground, dry land with rolling hills is visible, covered in various green grasses, small plants, and young fruit trees. In the background, calm blue seas meet the horizon. The sky is bright and clear.",
+      "id": "s3"
+    },
+    {
+      "from": 14,
+      "to": 19,
+      "title": "Sun, Moon, and Stars",
+      "caption": "God commanded lights to appear in the sky to separate day and night, and to mark seasons, days, and years (1:14-15). God made two large lights: a greater light for the day and a lesser light for the night, along with stars (1:16). God placed these lights in the sky to illuminate the earth and govern day and night (1:17-18). God saw that it was good, marking the fourth day (1:18-19).",
+      "visualPrompt": "A celestial scene. A large, bright sun dominates one side of the sky, casting warm light. On the opposite side, a crescent moon and numerous stars are visible, though less prominent. The earth below is partially visible, showing the division of day and night.",
+      "id": "s4"
+    },
+    {
+      "from": 20,
+      "to": 23,
+      "title": "Creatures of Water and Air",
+      "caption": "God commanded the waters to produce living creatures and the air to have flying birds (1:20). God created large sea creatures, all living things in the water, and all winged birds, and saw that it was good (1:21). God blessed them, telling them to be fruitful, multiply, and fill the waters and the earth (1:22). This completed the fifth day (1:23).",
+      "visualPrompt": "A dynamic scene showing abundant life. Below the surface of clear blue water, various fish and large marine animals swim. Above the water, birds of different kinds fly in the sky. The sun is setting, casting warm, golden light.",
+      "id": "s5"
+    },
+    {
+      "from": 24,
+      "to": 31,
+      "title": "Land Animals and Humanity",
+      "caption": "God commanded the earth to produce living creatures: cattle, creeping things, and wild animals (1:24). God made these creatures, and saw that it was good (1:25). God then said to make humanity in \"our image\" and likeness, to have authority over all other creatures (1:26). God created humanity, male and female (1:27). God blessed them, telling them to be fruitful, multiply, fill the earth, and have authority over all living things (1:28). God gave humanity and all animals plants for food (1:29-30). God saw everything he had made, and it was very good, marking the sixth day (1:31).",
+      "visualPrompt": "A lush, vibrant landscape teeming with life. Various land animals (e.g., cattle, deer, small reptiles, birds) are visible, peacefully coexisting. In the foreground, a man and a woman stand together, looking out at the abundant world. They are dressed simply, perhaps in animal skins or leaves, in a way that suggests early human existence. The mood is peaceful and harmonious.",
+      "id": "s6"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T06:53:21.635Z"
+}

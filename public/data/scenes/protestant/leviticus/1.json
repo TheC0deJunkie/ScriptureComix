@@ -1,0 +1,38 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 2,
+      "title": "Moses Called to the Tabernacle",
+      "caption": "The Lord calls to Moses from the Tabernacle. He tells Moses to instruct the Israelites about bringing offerings from their cattle or flock.",
+      "visualPrompt": "Moses stands respectfully outside the entrance of the Tabernacle, listening intently. The Tabernacle is a large, ornate tent structure in a desert setting. The sky is clear. No other people are visible.",
+      "id": "s1"
+    },
+    {
+      "from": 3,
+      "to": 9,
+      "title": "Burnt Offering from the Herd",
+      "caption": "A man brings a male bullock without blemish to the Tabernacle door. He places his hand on its head. A priest kills the bullock, sprinkles its blood on the altar, and prepares the animal for burning. The priest then burns the prepared parts on the altar.",
+      "visualPrompt": "A man in simple Israelite clothing stands next to a large bullock at the entrance of the Tabernacle courtyard. He has one hand on the bullock's head. In the background, a priest, dressed in linen garments, is tending to a fire on a large stone altar. The mood is solemn and ritualistic.",
+      "id": "s2"
+    },
+    {
+      "from": 10,
+      "to": 13,
+      "title": "Burnt Offering from the Flock",
+      "caption": "If the offering is from the flock, a man brings a male sheep or goat without blemish. A priest kills it on the north side of the altar and sprinkles its blood. The priest then prepares the animal and burns it on the altar.",
+      "visualPrompt": "A man in simple Israelite clothing stands with a sheep or goat on the north side of a large stone altar in the Tabernacle courtyard. A priest, dressed in linen garments, is performing a ritual action with the animal. Smoke rises from the altar in the background. The setting is the Tabernacle courtyard under a clear sky.",
+      "id": "s3"
+    },
+    {
+      "from": 14,
+      "to": 17,
+      "title": "Burnt Offering from Fowls",
+      "caption": "If the offering is of fowls, a man brings turtledoves or young pigeons. A priest prepares the bird by wringing its head and casting its crop and feathers aside. The priest then burns the bird on the altar.",
+      "visualPrompt": "A priest, dressed in linen garments, stands at the altar in the Tabernacle courtyard, holding a small bird (dove or pigeon). He is performing a ritual action with the bird. Another priest might be tending the fire on the altar. The mood is solemn.",
+      "id": "s4"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T08:21:49.209Z"
+}

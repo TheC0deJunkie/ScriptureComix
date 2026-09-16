@@ -1,0 +1,66 @@
+{
+  "sets": [
+    {
+      "id": "ai-1789541730494",
+      "source": "ai",
+      "createdAt": "2026-09-16T06:55:30.494Z",
+      "questions": [
+        {
+          "question": "According to the passage, which of these is an attribute of Allah?",
+          "options": [
+            "The one who goes astray",
+            "The Master of the Day of Judgment",
+            "The one whose portion is wrath",
+            "The one who seeks aid"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Ayah 4 states Allah is the 'Master of the Day of Judgment'."
+        },
+        {
+          "question": "Who is praised as the 'Cherisher and Sustainer of the worlds' in this passage?",
+          "options": [
+            "Those who go astray",
+            "Those on whom Grace is bestowed",
+            "Allah",
+            "The Day of Judgment"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Ayah 2 says 'Praise be to Allah, the Cherisher and Sustainer of the worlds'."
+        },
+        {
+          "question": "What do 'we' ask Allah to show us in the passage?",
+          "options": [
+            "The Day of Judgment",
+            "The straight way",
+            "The way of those with wrath",
+            "The way of those who go astray"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Ayah 6 states 'Show us the straight way'."
+        },
+        {
+          "question": "The 'straight way' is described as the path of those who possess which of the following?",
+          "options": [
+            "Wrath",
+            "Going astray",
+            "Grace",
+            "Seeking aid from others"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Ayah 7 describes the straight way as 'The way of those on whom Thou hast bestowed Thy Grace'."
+        },
+        {
+          "question": "What two main actions do 'we' perform towards Allah, according to the passage?",
+          "options": [
+            "Seeking wrath and going astray",
+            "Cherishing and sustaining the worlds",
+            "Thee do we worship, and Thine aid we seek",
+            "Bestowing Grace and judgment"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Ayah 5 states 'Thee do we worship, and Thine aid we seek'."
+        }
+      ]
+    }
+  ]
+}

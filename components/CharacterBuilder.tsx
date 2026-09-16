@@ -1,192 +1,150 @@
 import React, { useState } from 'react';
-import { Palette, Star, Trash2, UserPlus, Sparkles } from 'lucide-react';
+import { Palette, Star, Trash2, UserPlus, Sparkles, Check } from 'lucide-react';
 import { ArtStyle, CustomHero } from '../types';
+import { Button, TextInput, TextArea, Field, Select, Eyebrow, EmptyState, cx, useConfirm } from './ui/primitives';
 
 interface CharacterBuilderProps {
   heroes: CustomHero[];
   activeHeroIds: string[];
+  heroLimit: number;
   onCreate: (hero: Omit<CustomHero, 'id'>) => void;
   onToggle: (heroId: string) => void;
   onDelete: (heroId: string) => void;
 }
 
-const archetypes = [
-  "Guardian",
-  "Messenger",
-  "Strategist",
-  "Healer",
-  "Reformer",
-  "Artist"
-];
+const ARCHETYPES = ['Guardian', 'Messenger', 'Strategist', 'Healer', 'Reformer', 'Artist'] as const;
+type Archetype = typeof ARCHETYPES[number];
 
-export const CharacterBuilder: React.FC<CharacterBuilderProps> = ({
-  heroes,
-  activeHeroIds,
-  onCreate,
-  onToggle,
-  onDelete
-}) => {
+const AURAS = ['#f97316', '#eab308', '#22c55e', '#0ea5e9', '#8b5cf6', '#ec4899', '#ef4444', '#0f172a'];
+
+export const CharacterBuilder: React.FC<CharacterBuilderProps> = ({ heroes, activeHeroIds, heroLimit, onCreate, onToggle, onDelete }) => {
+  const confirm = useConfirm();
   const [form, setForm] = useState({
-    name: '',
-    archetype: archetypes[0],
-    mission: '',
-    traits: '',
-    catchphrase: '',
-    artStyle: ArtStyle.COMIC_MODERN,
-    palette: '#f97316'
+    name: '', archetype: 'Guardian' as Archetype, mission: '', traits: '', catchphrase: '', artStyle: ArtStyle.COMIC_MODERN, palette: AURAS[0],
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim() || !form.mission.trim()) return;
-
-    const traitsList = form.traits
-      .split(',')
-      .map(t => t.trim())
-      .filter(Boolean);
-
     onCreate({
       name: form.name.trim(),
       archetype: form.archetype,
       mission: form.mission.trim(),
-      traits: traitsList,
+      traits: form.traits.split(',').map(t => t.trim()).filter(Boolean),
       catchphrase: form.catchphrase.trim(),
       artStyle: form.artStyle,
-      palette: form.palette
+      palette: form.palette,
     });
+    setForm(prev => ({ ...prev, name: '', mission: '', traits: '', catchphrase: '' }));
+  };
 
-    setForm(prev => ({
-      ...prev,
-      name: '',
-      mission: '',
-      traits: '',
-      catchphrase: ''
-    }));
+  const remove = async (hero: CustomHero) => {
+    if (await confirm({ title: `Remove ${hero.name}?`, description: 'They will no longer appear in your comics. This cannot be undone.', confirmLabel: 'Remove', tone: 'danger' })) onDelete(hero.id);
   };
 
   return (
-    <div className="bg-white border-4 border-black rounded-3xl shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="bg-purple-100 border-2 border-black rounded-full p-3">
-          <UserPlus className="text-purple-600" />
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-start gap-3">
+        <span className="bg-purple-200 border-[3px] border-black rounded-full p-3 shrink-0"><UserPlus className="text-purple-800" /></span>
         <div>
-          <h3 className="comic-font text-2xl uppercase">Character Forge</h3>
-          <p className="text-sm text-gray-500">Create heroes that cameo in every comic.</p>
+          <h3 className="comic-font text-3xl leading-none">Your cast</h3>
+          <p className="text-sm text-slate-600 mt-1">Characters you invent can appear in the comics you generate. Up to {heroLimit} at a time.</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input
-          className="border-2 border-black rounded px-3 py-2 font-bold"
-          placeholder="Hero name"
-          value={form.name}
-          onChange={e => setForm({ ...form, name: e.target.value })}
-        />
-        <select
-          className="border-2 border-black rounded px-3 py-2 font-bold bg-gray-50"
-          value={form.archetype}
-          onChange={e => setForm({ ...form, archetype: e.target.value })}
-        >
-          {archetypes.map(role => (
-            <option key={role} value={role}>{role}</option>
-          ))}
-        </select>
-        <textarea
-          className="border-2 border-black rounded px-3 py-2 md:col-span-2 min-h-[80px]"
-          placeholder="Mission statement (how does this hero serve readers?)"
-          value={form.mission}
-          onChange={e => setForm({ ...form, mission: e.target.value })}
-        />
-        <input
-          className="border-2 border-black rounded px-3 py-2"
-          placeholder="Signature traits (comma separated)"
-          value={form.traits}
-          onChange={e => setForm({ ...form, traits: e.target.value })}
-        />
-        <input
-          className="border-2 border-black rounded px-3 py-2"
-          placeholder="Catchphrase / highlight quote"
-          value={form.catchphrase}
-          onChange={e => setForm({ ...form, catchphrase: e.target.value })}
-        />
-        <div className="flex items-center gap-2 border-2 border-black rounded px-3 py-2">
-          <Palette size={16} className="text-purple-600" />
-          <select
-            className="flex-1 bg-transparent font-bold"
-            value={form.artStyle}
-            onChange={e => setForm({ ...form, artStyle: e.target.value as ArtStyle })}
-          >
-            {Object.values(ArtStyle).map(style => (
-              <option key={style} value={style}>{style}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex items-center gap-2 border-2 border-black rounded px-3 py-2">
-          <span className="text-xs uppercase text-gray-500 font-bold">Aura</span>
-          <input
-            type="color"
-            value={form.palette}
-            onChange={e => setForm({ ...form, palette: e.target.value })}
-            className="w-10 h-10 border rounded-full cursor-pointer"
+      <form onSubmit={handleSubmit} className="bg-white border-[3px] border-black rounded-2xl p-4 shadow-[4px_4px_0_0_#000] grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Field label="Name"><TextInput placeholder="e.g. Miriam the Scribe" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required /></Field>
+        <Field label="Role">
+          <Select<Archetype>
+            ariaLabel="Role"
+            value={form.archetype}
+            onChange={v => setForm({ ...form, archetype: v })}
+            options={ARCHETYPES.map(a => ({ value: a, label: a }))}
+            buttonClassName="w-full"
+            className="w-full"
           />
-        </div>
-        <button
-          type="submit"
-          className="md:col-span-2 bg-purple-600 text-white font-black py-3 border-2 border-black rounded-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-purple-500 transition-all flex items-center justify-center gap-2"
-        >
-          <Sparkles size={18} /> Forge Hero
-        </button>
+        </Field>
+        <Field label="What do they do in the story?" className="md:col-span-2">
+          <TextArea placeholder="e.g. Asks the questions a first-time reader would ask." value={form.mission} onChange={e => setForm({ ...form, mission: e.target.value })} required />
+        </Field>
+        <Field label="Traits" hint="Comma separated"><TextInput placeholder="brave, curious, kind" value={form.traits} onChange={e => setForm({ ...form, traits: e.target.value })} /></Field>
+        <Field label="Catchphrase" hint="Optional"><TextInput placeholder="“Tell me more.”" value={form.catchphrase} onChange={e => setForm({ ...form, catchphrase: e.target.value })} /></Field>
+        <Field label="Drawn in">
+          <Select<ArtStyle>
+            ariaLabel="Art style"
+            value={form.artStyle}
+            onChange={v => setForm({ ...form, artStyle: v })}
+            options={Object.values(ArtStyle).map(s => ({ value: s, label: s }))}
+            icon={<Palette size={14} className="text-purple-600" />}
+            buttonClassName="w-full"
+            className="w-full"
+          />
+        </Field>
+        <Field label="Aura colour">
+          <div role="radiogroup" aria-label="Aura colour" className="flex flex-wrap gap-2 py-1">
+            {AURAS.map(c => (
+              <button
+                key={c}
+                type="button"
+                role="radio"
+                aria-checked={form.palette === c}
+                aria-label={c}
+                onClick={() => setForm({ ...form, palette: c })}
+                style={{ backgroundColor: c }}
+                className={cx('w-8 h-8 rounded-full border-[3px] flex items-center justify-center transition-transform focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-purple-300', form.palette === c ? 'border-black scale-110' : 'border-white shadow')}
+              >
+                {form.palette === c && <Check size={14} className="text-white drop-shadow" />}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <Button type="submit" variant="accent" block className="md:col-span-2" disabled={!form.name.trim() || !form.mission.trim()}>
+          <Sparkles size={18} /> Add to cast
+        </Button>
       </form>
 
       <div>
-        <h4 className="uppercase text-xs font-bold text-gray-500 mb-2 tracking-widest">Your Cast</h4>
+        <Eyebrow className="text-slate-500 mb-2">Cast · {activeHeroIds.length}/{heroLimit} active</Eyebrow>
         {heroes.length === 0 ? (
-          <p className="text-sm text-gray-500">No custom heroes yet. Create one to personalize each chapter.</p>
+          <EmptyState icon={<UserPlus size={24} />} title="No characters yet" body="Add one above. Active characters get written into the comics you generate." className="py-6" />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {heroes.map(hero => (
-              <div
-                key={hero.id}
-                className="border-2 border-black rounded-xl p-3 bg-gradient-to-br from-white to-gray-50 flex flex-col gap-2"
-                style={{ boxShadow: activeHeroIds.includes(hero.id) ? `0 0 0 3px ${hero.palette || '#10b981'}` : undefined }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-black text-lg">{hero.name}</p>
-                    <span className="text-xs font-bold text-gray-500">{hero.archetype}</span>
+            {heroes.map(hero => {
+              const active = activeHeroIds.includes(hero.id);
+              return (
+                <div
+                  key={hero.id}
+                  className="border-[3px] border-black rounded-2xl p-3 bg-white flex flex-col gap-2"
+                  style={{ boxShadow: active ? `4px 4px 0 0 ${hero.palette || '#10b981'}` : '4px 4px 0 0 #e2e8f0' }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-8 h-8 rounded-full border-2 border-black shrink-0" style={{ backgroundColor: hero.palette || '#10b981' }} aria-hidden="true" />
+                      <div className="min-w-0">
+                        <p className="font-black text-lg leading-tight truncate">{hero.name}</p>
+                        <p className="text-xs font-bold text-slate-500">{hero.archetype}</p>
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => remove(hero)} aria-label={`Remove ${hero.name}`} className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"><Trash2 size={16} /></button>
                   </div>
-                  <button onClick={() => onDelete(hero.id)} className="text-gray-400 hover:text-red-500">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-                <p className="text-sm text-gray-600">{hero.mission}</p>
-                {hero.traits.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {hero.traits.map(trait => (
-                      <span key={trait} className="text-[10px] uppercase bg-gray-200 px-2 py-0.5 rounded-full font-bold tracking-widest">
-                        {trait}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                <div className="flex items-center justify-between pt-2">
-                  <button
-                    onClick={() => onToggle(hero.id)}
-                    className={`text-xs font-black px-3 py-1 rounded-full border-2 border-black flex items-center gap-1 ${activeHeroIds.includes(hero.id) ? 'bg-green-400' : 'bg-white'}`}
-                  >
-                    <Star size={14} /> {activeHeroIds.includes(hero.id) ? 'Active' : 'Activate'}
-                  </button>
-                  {hero.catchphrase && (
-                    <p className="text-[11px] italic text-gray-500 text-right">"{hero.catchphrase}"</p>
+                  <p className="text-sm text-slate-700">{hero.mission}</p>
+                  {hero.traits.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {hero.traits.map(trait => <span key={trait} className="text-[10px] uppercase bg-slate-100 border border-slate-300 px-2 py-0.5 rounded-full font-bold tracking-wider">{trait}</span>)}
+                    </div>
                   )}
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <Button size="xs" variant={active ? 'success' : 'secondary'} onClick={() => onToggle(hero.id)} aria-pressed={active}>
+                      <Star size={12} className={active ? 'fill-current' : ''} /> {active ? 'In the cast' : 'Add to cast'}
+                    </Button>
+                    {hero.catchphrase && <p className="text-[11px] italic text-slate-500 text-right truncate">“{hero.catchphrase}”</p>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
     </div>
   );
 };
-

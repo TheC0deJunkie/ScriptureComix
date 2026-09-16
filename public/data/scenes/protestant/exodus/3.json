@@ -1,0 +1,62 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 6,
+      "title": "Moses at the Burning Bush",
+      "caption": "Moses leads his father-in-law's flock to Mount Horeb. An angel appears in a bush that burns but is not consumed. Moses turns to see this sight, and God calls to him from the bush, telling him to remove his shoes because the ground is holy. God identifies himself as the God of Moses's ancestors, and Moses hides his face in fear.",
+      "visualPrompt": "A desert landscape at the base of a rocky mountain. A lone shepherd, Moses, in simple robes, stands near a thorny bush engulfed in bright, contained flames. He looks at the bush with a surprised expression, one hand raised. His sandals are on the ground beside him. Sheep graze peacefully nearby. Early morning light.",
+      "id": "s1"
+    },
+    {
+      "from": 7,
+      "to": 10,
+      "title": "God Hears His People",
+      "caption": "God tells Moses that he has seen the suffering of his people in Egypt and heard their cries. God states his intention to deliver them from the Egyptians and bring them to a good land. God then tells Moses that he is sending him to Pharaoh to lead the Israelites out of Egypt.",
+      "visualPrompt": "A close-up on Moses's face, looking up towards the burning bush (implied source of voice). His expression is serious, listening intently. The background is a blurred desert, suggesting the vastness of the land. The burning bush's light casts a warm glow on his face.",
+      "id": "s2"
+    },
+    {
+      "from": 11,
+      "to": 12,
+      "title": "Moses Questions His Role",
+      "caption": "Moses asks God who he is to go to Pharaoh and bring the Israelites out of Egypt. God responds by promising to be with Moses. God also gives a sign: after Moses brings the people out of Egypt, they will serve God on this very mountain.",
+      "visualPrompt": "Moses, still in simple shepherd's attire, stands before the burning bush (implied). He has a look of doubt or apprehension on his face, perhaps with hands slightly open in a gesture of questioning. The desert environment is still present. The light from the bush is still prominent.",
+      "id": "s3"
+    },
+    {
+      "from": 13,
+      "to": 15,
+      "title": "God Reveals His Name",
+      "caption": "Moses asks God what he should say when the Israelites ask for God's name. God tells Moses to say 'I Am That I Am' and 'I Am has sent me to you.' God further instructs Moses to tell the Israelites that 'the Lord God of your fathers, the God of Abraham, the God of Isaac, and the God of Jacob' has sent him, stating this is his name forever.",
+      "visualPrompt": "Moses is looking thoughtful, perhaps slightly overwhelmed, as he processes the revelation. He might be looking down or slightly away from the bush, contemplating. The desert setting remains. The burning bush is still a focal point, but the emphasis is on Moses's internal reaction.",
+      "id": "s4"
+    },
+    {
+      "from": 16,
+      "to": 18,
+      "title": "Instructions for the Elders",
+      "caption": "God instructs Moses to gather the elders of Israel and tell them that God has visited them and seen their suffering in Egypt. God says he will bring them to a land flowing with milk and honey. Moses and the elders are to go to the king of Egypt and ask to go three days' journey into the wilderness to sacrifice to God.",
+      "visualPrompt": "Moses is now depicted with a more determined expression, perhaps gesturing slightly as if rehearsing the message. The burning bush is still present, but the focus shifts to Moses's future actions. The desert background is consistent.",
+      "id": "s5"
+    },
+    {
+      "from": 19,
+      "to": 20,
+      "title": "Pharaoh's Refusal Predicted",
+      "caption": "God states that the king of Egypt will not let the Israelites go unless forced by a mighty hand. God promises to strike Egypt with wonders, after which Pharaoh will let the people go.",
+      "visualPrompt": "Moses is listening intently, his face showing a mix of understanding and perhaps concern about the predicted resistance. The burning bush is still the source of the voice. The desert scene is consistent. This scene focuses on the spoken prediction.",
+      "id": "s6"
+    },
+    {
+      "from": 21,
+      "to": 22,
+      "title": "Spoiling the Egyptians",
+      "caption": "God promises to give the Israelites favor in the sight of the Egyptians, so they will not leave empty-handed. Every woman is instructed to ask her neighbor and those living in her house for silver, gold, and clothing, which they will put on their children, thus 'spoiling' the Egyptians.",
+      "visualPrompt": "Moses, with a look of understanding or even slight surprise at this final instruction. He might be looking towards the horizon, imagining the future events. The burning bush is still present, but the scene implies the conclusion of the immediate conversation. The desert light suggests the end of the encounter.",
+      "id": "s7"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T06:47:16.028Z"
+}

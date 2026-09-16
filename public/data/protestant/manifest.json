@@ -1656,43 +1656,57 @@
   ],
   "translations": [
     {
+      "id": "nlt",
+      "displayName": "New Living Translation",
+      "copyright": "Scripture quotations are taken from the Holy Bible, New Living Translation, copyright 1996, 2004, 2015 by Tyndale House Foundation. Used by permission.",
+      "isPublicDomain": false,
+      "language": "en"
+    },
+    {
       "id": "kjv",
       "displayName": "King James Version",
-      "isPublicDomain": true
+      "isPublicDomain": true,
+      "language": "en"
     },
     {
       "id": "web",
       "displayName": "World English Bible",
-      "isPublicDomain": true
+      "isPublicDomain": true,
+      "language": "en"
     },
     {
       "id": "gnv",
       "displayName": "Geneva Bible (1599)",
-      "isPublicDomain": true
+      "isPublicDomain": true,
+      "language": "en"
     },
     {
       "id": "niv",
       "displayName": "New International Version",
       "copyright": "Scripture taken from the Holy Bible, NEW INTERNATIONAL VERSION. Copyright 1973, 1978, 1984, 2011 by Biblica, Inc. Used by permission.",
-      "isPublicDomain": false
-    },
-    {
-      "id": "nlt",
-      "displayName": "New Living Translation",
-      "copyright": "Scripture quotations are taken from the Holy Bible, New Living Translation, copyright 1996, 2004, 2015 by Tyndale House Foundation. Used by permission.",
-      "isPublicDomain": false
+      "isPublicDomain": false,
+      "language": "en"
     },
     {
       "id": "nkjv",
       "displayName": "New King James Version",
       "copyright": "Scripture taken from the New King James Version. Copyright 1982 by Thomas Nelson. Used by permission.",
-      "isPublicDomain": false
+      "isPublicDomain": false,
+      "language": "en"
     },
     {
       "id": "nasb",
       "displayName": "New American Standard Bible",
       "copyright": "Scripture quotations taken from the (NASB) New American Standard Bible, Copyright 1960, 1971, 1977, 1995, 2020 by The Lockman Foundation. Used by permission.",
-      "isPublicDomain": false
+      "isPublicDomain": false,
+      "language": "en"
+    },
+    {
+      "id": "zul1883",
+      "displayName": "IBhayibheli Elingcwele (isiZulu 1883)",
+      "language": "zu",
+      "isPublicDomain": true,
+      "copyright": "Public domain. Digitised from an 1883 American Bible Society printing (archive.org/details/zulu-bible); the text was machine-read from a scan and may contain errors. Missing verses are filled from the KJV and marked."
     }
   ]
 }

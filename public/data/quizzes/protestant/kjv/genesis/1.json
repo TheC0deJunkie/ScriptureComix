@@ -1,0 +1,128 @@
+{
+  "sets": [
+    {
+      "id": "ai-1789506203715",
+      "source": "ai",
+      "createdAt": "2026-09-15T21:03:23.715Z",
+      "questions": [
+        {
+          "question": "What was the very first thing God created, according to this passage?",
+          "options": [
+            "Light",
+            "The firmament",
+            "Heaven and Earth",
+            "Dry land and seas"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 1 states, \"In the beginning God created the heaven and the earth.\""
+        },
+        {
+          "question": "What specific role did God intend for man and woman to have over the earth and its creatures?",
+          "options": [
+            "To bring forth grass and fruit trees",
+            "To divide light from darkness",
+            "To have dominion and subdue the earth",
+            "To gather the waters into seas"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 26 says God intended for man to \"have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.\" Verse 28 further reinforces this by saying, \"subdue it: and have dominion over the fish of the sea, and over the fowl of the air, and over every living thing that moveth upon the earth.\""
+        },
+        {
+          "question": "Besides giving light upon the earth, what was another purpose for the lights God placed in the firmament?",
+          "options": [
+            "To bring forth living creatures",
+            "To be for signs, seasons, days, and years",
+            "To gather the waters together",
+            "To make the earth bring forth grass"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Verse 14 states, \"And God said, Let there be lights in the firmament of the heaven to divide the day from the night; and let them be for signs, and for seasons, and for days, and years.\""
+        },
+        {
+          "question": "What did God call the \"firmament\" that divided the waters?",
+          "options": [
+            "Day",
+            "Night",
+            "Heaven",
+            "Earth"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 8 says, \"And God called the firmament Heaven.\""
+        },
+        {
+          "question": "What did God create after making the dry land and seas, but before creating the great lights in the sky?",
+          "options": [
+            "Man and woman",
+            "Grass, herbs, and fruit trees",
+            "Great whales and winged fowl",
+            "Cattle and creeping things"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Dry land and seas were created on Day 3 (verses 9-10). Immediately after, still on Day 3, God commanded the earth to bring forth grass, herbs, and fruit trees (verse 11), and it was so (verse 12). The great lights were created on Day 4 (verses 14-19)."
+        }
+      ]
+    },
+    {
+      "id": "ai-1789506214270",
+      "source": "ai",
+      "createdAt": "2026-09-15T21:03:34.270Z",
+      "questions": [
+        {
+          "question": "What was the very first thing God created according to the passage?",
+          "options": [
+            "Light",
+            "The firmament",
+            "Heaven and Earth",
+            "Dry land"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 1 states: 'In the beginning God created the heaven and the earth.'"
+        },
+        {
+          "question": "Before creating man, what did God say about man's purpose?",
+          "options": [
+            "To fill the waters in the seas.",
+            "To bring forth grass, herbs, and fruit trees.",
+            "To have dominion over all living things on Earth.",
+            "To divide the light from the darkness."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 26 says: 'and let them have dominion over the fish of the sea, and over the fowl of the air, and over the cattle, and over all the earth, and over every creeping thing that creepeth upon the earth.'"
+        },
+        {
+          "question": "What did God name the 'firmament' He created on the second day?",
+          "options": [
+            "Day",
+            "Night",
+            "Heaven",
+            "Seas"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 8 states: 'And God called the firmament Heaven.'"
+        },
+        {
+          "question": "Besides the two great lights, what else did God make on the fourth day to be in the firmament?",
+          "options": [
+            "Whales",
+            "Stars",
+            "Grass",
+            "Cattle"
+          ],
+          "correctAnswer": 1,
+          "explanation": "Verse 16 mentions: 'And God made two great lights; the greater light to rule the day, and the lesser light to rule the night: he made the stars also.'"
+        },
+        {
+          "question": "Which of these was created on the fifth day?",
+          "options": [
+            "Man, male and female",
+            "Cattle and creeping things",
+            "Great whales and winged fowl",
+            "Grass, herbs, and fruit trees"
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verses 20-21 describe the fifth day: 'And God said, Let the waters bring forth abundantly the moving creature that hath life, and fowl that may fly above the earth in the open firmament of heaven. And God created great whales, and every living creature that moveth, which the waters brought forth abundantly, after their kind, and every winged fowl after his kind: and God saw that it was good.'"
+        }
+      ]
+    }
+  ]
+}

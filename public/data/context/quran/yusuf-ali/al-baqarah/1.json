@@ -1,0 +1,148 @@
+{
+  "summary": "This passage introduces the Quran as guidance for believers and describes the characteristics of those who accept or reject faith, including hypocrites. It recounts the creation of Adam, his instruction, the angels' bowing, and Iblis's refusal, leading to Adam's expulsion from the Garden. The text then addresses the Children of Israel, reminding them of past divine favors, their covenant, and historical transgressions, such as calf worship and Sabbath breaking. It also includes the story of the heifer sacrifice and criticizes the hardened hearts and hypocrisy of some among them.",
+  "setting": "This passage is part of Surah Al-Baqarah, which was revealed in Medina. Most historians think it was revealed during the early Medinan period, addressing the newly formed Muslim community and interacting with the existing Jewish and polytheistic communities in Medina. The passage sets the stage for the broader themes of guidance, law, and community building.",
+  "events": [
+    {
+      "ref": "ayahs 2-5",
+      "what": "The Quran is introduced as a book of sure guidance for those who fear Allah, believe in the Unseen, pray, give charity, believe in all revelations, and the Hereafter."
+    },
+    {
+      "ref": "ayahs 6-20",
+      "what": "Those who reject faith are described as having sealed hearts and veiled eyes, making warnings ineffective. Hypocrites are then detailed as those who claim belief but deceive themselves, cause mischief, and mock believers, leading to their loss of true direction."
+    },
+    {
+      "ref": "ayahs 21-29",
+      "what": "A call is made to worship the Lord who created all things and provided sustenance. A challenge is issued to those who doubt the revelation to produce a similar chapter, warning them of fire if they fail."
+    },
+    {
+      "ref": "ayahs 30-39",
+      "what": "Allah announces His intention to create a vicegerent on Earth. Adam is created, taught the names of all things, and the angels are commanded to bow to him. Iblis refuses out of haughtiness. Adam and his wife dwell in the Garden but are expelled after Satan makes them slip, with a promise of guidance to come."
+    },
+    {
+      "ref": "ayahs 40-61",
+      "what": "The Children of Israel are addressed, reminded of Allah's special favors, their covenant, and past transgressions, including their deliverance from Pharaoh, calf worship, demanding to see Allah, and complaining about food."
+    },
+    {
+      "ref": "ayahs 63-66",
+      "what": "The covenant taken under Mount Sinai is recalled, along with the Children of Israel's subsequent turning back and the punishment of those who transgressed the Sabbath by being turned into apes."
+    },
+    {
+      "ref": "ayahs 67-73",
+      "what": "Moses commands his people to sacrifice a heifer. After much questioning about its characteristics, they reluctantly sacrifice it. A slain man is then brought to life by striking his body with a piece of the heifer, revealing what was hidden."
+    },
+    {
+      "ref": "ayahs 74-80",
+      "what": "The hearts of some among the Children of Israel are described as hardened. Their hypocrisy is highlighted, as they claim belief to others but privately discuss how revealing Allah's words might lead to arguments. The passage also criticizes those who write scripture with their own hands for profit and claim immunity from punishment."
+    }
+  ],
+  "people": [
+    {
+      "name": "Allah",
+      "role": "The Lord, Creator, Giver of guidance, Forgiver, Judge, and Speaker of the revelation."
+    },
+    {
+      "name": "Those who fear Allah/Believers",
+      "role": "Individuals who believe in the Unseen, are steadfast in prayer, give charity, believe in all revelations, and have assurance of the Hereafter."
+    },
+    {
+      "name": "Those who reject Faith",
+      "role": "Individuals whose hearts, hearing, and eyes are sealed or veiled, making them unable to believe."
+    },
+    {
+      "name": "Hypocrites",
+      "role": "Individuals who outwardly claim belief but inwardly do not, seek to deceive, cause mischief, and mock believers."
+    },
+    {
+      "name": "Angels",
+      "role": "Celestial beings who question the creation of a vicegerent but then obey Allah's command to bow to Adam."
+    },
+    {
+      "name": "Adam",
+      "role": "The first human, created as a vicegerent, taught names by Allah, to whom angels bowed, and who was expelled from the Garden after slipping."
+    },
+    {
+      "name": "Iblis/Satan",
+      "role": "A being who refused to bow to Adam out of haughtiness and caused Adam and his wife to slip from the Garden."
+    },
+    {
+      "name": "Children of Israel",
+      "role": "A group addressed directly, reminded of past favors, covenants, and transgressions, and urged to believe and do good."
+    },
+    {
+      "name": "Pharaoh",
+      "role": "The ruler from whom the Children of Israel were delivered."
+    },
+    {
+      "name": "Moses",
+      "role": "The prophet who led the Children of Israel, received the Scripture, and commanded the heifer sacrifice."
+    }
+  ],
+  "terms": [
+    {
+      "term": "Unseen",
+      "meaning": "Things not visible or perceivable by human senses, but believed in as part of faith (ayah 3)."
+    },
+    {
+      "term": "Hereafter",
+      "meaning": "The life after death, including judgment, reward, and punishment (ayah 4)."
+    },
+    {
+      "term": "Vicegerent (Khalifa)",
+      "meaning": "A representative or successor, one who acts on behalf of another, specifically Adam's role on Earth (ayah 30)."
+    },
+    {
+      "term": "Iblis",
+      "meaning": "A spiritual being (jinn) who refused to bow to Adam and is identified as Satan (ayah 34)."
+    },
+    {
+      "term": "Manna and quails",
+      "meaning": "Specific foods miraculously provided to the Children of Israel in the wilderness (ayah 57)."
+    },
+    {
+      "term": "Sabbath",
+      "meaning": "A day of rest and worship, specifically Saturday for Jews, which some transgressed (ayah 65)."
+    },
+    {
+      "term": "Heifer",
+      "meaning": "A young cow, specifically one commanded to be sacrificed in a story within the passage (ayah 67)."
+    }
+  ],
+  "readings": [
+    {
+      "tradition": "Muslim Tradition",
+      "view": "This passage is seen as foundational, establishing core tenets of Islam such as belief in Allah, prophets, scriptures, and the Last Day, while also presenting the history of earlier communities as lessons for the Muslim community."
+    },
+    {
+      "tradition": "Historical-Critical Scholarship",
+      "view": "This approach examines the literary structure, historical context of the early Muslim community in Medina, and the relationship between the Quranic narratives and earlier biblical or apocryphal traditions, noting how these stories are reinterpreted and presented in the Quran."
+    },
+    {
+      "tradition": "Jewish Tradition",
+      "view": "While not directly interpreting the Quran, Jewish scholars might compare the Quranic accounts of Adam, the Exodus, the Golden Calf, and the heifer sacrifice (ayahs 30-73) with their own scriptural narratives (Torah) to identify similarities, differences, and unique interpretations."
+    },
+    {
+      "tradition": "Christian Tradition",
+      "view": "Similar to Jewish tradition, Christian scholars might compare the Quranic narratives of creation, Adam, and the Children of Israel with biblical accounts, noting points of convergence and divergence in theological and narrative emphasis."
+    }
+  ],
+  "oftenQuoted": [
+    {
+      "ref": "ayah 2",
+      "caution": "This verse introduces the Quran as a source of infallible guidance. The surrounding text immediately defines 'those who fear Allah' as believers in the Unseen, prayer, charity, revelations, and the Hereafter (ayahs 3-5)."
+    },
+    {
+      "ref": "ayah 7",
+      "caution": "This verse describes the spiritual state of those who reject faith. The preceding verse states that it is the same whether they are warned or not, as they will not believe (ayah 6). The subsequent verses describe hypocrites who outwardly claim belief but inwardly reject it (ayahs 8-16)."
+    },
+    {
+      "ref": "ayah 30",
+      "caution": "This phrase refers to Allah's declaration to the angels about creating Adam. The surrounding text details the angels' questioning, Allah's superior knowledge, Adam being taught the names of all things, and the angels bowing to Adam, except Iblis (ayahs 30-34)."
+    },
+    {
+      "ref": "ayah 62",
+      "caution": "This verse speaks about the reward for righteous believers from various communities. The surrounding text (ayahs 40-61, 63-66) primarily addresses the Children of Israel, reminding them of their history, covenants, and transgressions, and urging them to believe and do good."
+    }
+  ],
+  "generatedAt": "2026-09-16T07:57:41.724Z",
+  "model": "gemini-2.5-flash"
+}

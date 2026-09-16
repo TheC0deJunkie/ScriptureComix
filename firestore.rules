@@ -1,0 +1,238 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function isString(v, max) {
+      return v is string && v.size() <= max;
+    }
+
+    function optionalString(data, field, max) {
+      return !(field in data) || data[field] == null || isString(data[field], max);
+    }
+
+    // Account + reader profile. Only the owner can read or write it.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      allow create, update: if isOwner(uid)
+        && request.resource.data.keys().hasOnly([
+          'email', 'phoneNumber', 'photoURL', 'providers', 'displayName',
+          'faithTradition', 'exploreLevel', 'createdAt', 'updatedAt', 'lastSeenAt'
+        ])
+        && optionalString(request.resource.data, 'email', 320)
+        && optionalString(request.resource.data, 'phoneNumber', 32)
+        && optionalString(request.resource.data, 'photoURL', 2048)
+        && optionalString(request.resource.data, 'displayName', 80)
+        && optionalString(request.resource.data, 'faithTradition', 40)
+        && optionalString(request.resource.data, 'exploreLevel', 40)
+        && (!('providers' in request.resource.data) || (request.resource.data.providers is list && request.resource.data.providers.size() <= 10))
+        // createdAt is written once and never changed afterwards
+        && (resource == null || !('createdAt' in resource.data) || request.resource.data.createdAt == resource.data.createdAt);
+
+      allow delete: if isOwner(uid);
+
+      // Per-reader state: streak, points, bookmarks, tier.
+      match /state/{docId} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && docId == 'stats'
+          && request.resource.data.keys().hasOnly([
+            'streak', 'lastVisit', 'xp', 'chaptersRead', 'bookmarks', 'tier',
+            'dailyAiUsage', 'lastAiUsageDate', 'updatedAt'
+          ])
+          && request.resource.data.streak is int && request.resource.data.streak >= 0
+          && request.resource.data.xp is int && request.resource.data.xp >= 0
+          && request.resource.data.chaptersRead is int && request.resource.data.chaptersRead >= 0
+          && request.resource.data.dailyAiUsage is int && request.resource.data.dailyAiUsage >= 0
+          && isString(request.resource.data.lastVisit, 40)
+          && isString(request.resource.data.lastAiUsageDate, 40)
+          && isString(request.resource.data.tier, 40)
+          && request.resource.data.bookmarks is list
+          && request.resource.data.bookmarks.size() <= 2000;
+      }
+    }
+
+    // -----------------------------------------------------------------------
+    // Study circles
+    // -----------------------------------------------------------------------
+
+    function uid() {
+      return request.auth.uid;
+    }
+
+    function memberOf(circle) {
+      return signedIn() && circle.memberUids is list && uid() in circle.memberUids;
+    }
+
+    function leaderOf(circle) {
+      return signedIn() && circle.ownerUid == uid();
+    }
+
+    function circle(circleId) {
+      return get(/databases/$(database)/documents/circles/$(circleId)).data;
+    }
+
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function validPointerList(list, max) {
+      return list is list && list.size() <= max;
+    }
+
+    function validFocus(data) {
+      return optionalString(data, 'tradition', 40)
+        && optionalString(data, 'targetBook', 120)
+        && (!('targetChapter' in data) || data.targetChapter is int)
+        && (!('targetVerses' in data) || (data.targetVerses is list && data.targetVerses.size() <= 400))
+        && optionalString(data, 'targetLabel', 160);
+    }
+
+    // Invite-code lookup. Anyone signed in can resolve a code; codes are never edited.
+    match /codes/{code} {
+      allow get: if signedIn();
+      allow list: if false;
+      allow create: if signedIn()
+        && code.size() >= 4 && code.size() <= 12
+        && request.resource.data.keys().hasOnly(['circleId', 'createdAt'])
+        && request.resource.data.circleId is string;
+      allow update, delete: if false;
+    }
+
+    match /circles/{circleId} {
+      // A circle's front page can be fetched by anyone who has its id (needed to join);
+      // listing is only ever "my circles".
+      allow get: if signedIn();
+      allow list: if memberOf(resource.data);
+
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == uid()
+        && request.resource.data.memberUids == [uid()]
+        && request.resource.data.keys().hasOnly([
+          'name', 'focus', 'code', 'ownerUid', 'memberUids', 'members',
+          'tradition', 'targetBook', 'targetChapter', 'targetVerses', 'targetLabel',
+          'status', 'currentSessionId', 'sessionCount', 'createdAt', 'updatedAt'
+        ])
+        && isString(request.resource.data.name, 80)
+        && isString(request.resource.data.focus, 200)
+        && isString(request.resource.data.code, 12)
+        && request.resource.data.status in ['active', 'ended']
+        && validFocus(request.resource.data);
+
+      allow update: if signedIn() && (
+        // Members: rename or move the focus.
+        (memberOf(resource.data)
+          && changedKeys().hasOnly(['name', 'focus', 'tradition', 'targetBook', 'targetChapter', 'targetVerses', 'targetLabel', 'updatedAt'])
+          && isString(request.resource.data.name, 80)
+          && isString(request.resource.data.focus, 200)
+          && validFocus(request.resource.data))
+        // Leader: end or start sessions (locks / unlocks the circle for everyone).
+        || (leaderOf(resource.data)
+          && changedKeys().hasOnly(['status', 'currentSessionId', 'sessionCount', 'endedAt', 'endedBy', 'tradition', 'targetBook', 'targetChapter', 'targetVerses', 'targetLabel', 'updatedAt'])
+          && request.resource.data.status in ['active', 'ended']
+          && request.resource.data.sessionCount is int
+          && validFocus(request.resource.data))
+        // Join: add exactly yourself.
+        || (!(uid() in resource.data.memberUids)
+          && request.resource.data.memberUids == resource.data.memberUids.concat([uid()])
+          && request.resource.data.memberUids.size() <= 200
+          && changedKeys().hasOnly(['memberUids', 'members', 'updatedAt'])
+          && request.resource.data.members.diff(resource.data.members).affectedKeys().hasOnly([uid()]))
+        // Leave: remove exactly yourself; a leaving leader may hand over.
+        || (memberOf(resource.data)
+          && request.resource.data.memberUids == resource.data.memberUids.removeAll([uid()])
+          && changedKeys().hasOnly(['memberUids', 'members', 'updatedAt', 'ownerUid'])
+          && request.resource.data.members.diff(resource.data.members).affectedKeys().hasOnly([uid()])
+          && (resource.data.ownerUid != uid() || !('ownerUid' in changedKeys()) || request.resource.data.ownerUid in request.resource.data.memberUids))
+      );
+
+      allow delete: if leaderOf(resource.data);
+
+      match /sessions/{sessionId} {
+        allow read: if memberOf(circle(circleId));
+        allow create: if memberOf(circle(circleId))
+          && request.resource.data.keys().hasOnly([
+            'number', 'title', 'status', 'startedAt', 'startedBy', 'startedByUid',
+            'endedAt', 'endedBy', 'endedByUid', 'passages', 'summary', 'takeaways', 'reflectionCount'
+          ])
+          && request.resource.data.number is int
+          && isString(request.resource.data.title, 120)
+          && request.resource.data.status in ['open', 'closed']
+          && validPointerList(request.resource.data.passages, 200)
+          && isString(request.resource.data.summary, 8000)
+          && validPointerList(request.resource.data.takeaways, 50);
+        allow update: if memberOf(circle(circleId))
+          && changedKeys().hasOnly(['title', 'status', 'endedAt', 'endedBy', 'endedByUid', 'passages', 'summary', 'takeaways', 'reflectionCount'])
+          && isString(request.resource.data.title, 120)
+          && request.resource.data.status in ['open', 'closed']
+          && validPointerList(request.resource.data.passages, 200)
+          && isString(request.resource.data.summary, 8000)
+          && validPointerList(request.resource.data.takeaways, 50)
+          // Only the leader may close a session (that is what locks the circle).
+          && (resource.data.status == request.resource.data.status || leaderOf(circle(circleId)));
+        allow delete: if false;
+
+        match /reflections/{reflectionId} {
+          allow read: if memberOf(circle(circleId));
+          // Writing needs an open, active circle; system lines are only written alongside member actions.
+          allow create: if memberOf(circle(circleId))
+            && circle(circleId).status == 'active'
+            && request.resource.data.keys().hasOnly(['authorUid', 'author', 'text', 'ref', 'createdAt'])
+            && (request.resource.data.authorUid == uid() || request.resource.data.authorUid == 'system')
+            && isString(request.resource.data.author, 80)
+            && isString(request.resource.data.text, 4000);
+          allow update, delete: if false;
+        }
+      }
+
+      match /notes/{noteId} {
+        allow read: if memberOf(circle(circleId));
+        allow create: if memberOf(circle(circleId))
+          && request.resource.data.authorUid == uid()
+          && request.resource.data.keys().hasOnly(['authorUid', 'author', 'title', 'body', 'ref', 'createdAt', 'updatedAt'])
+          && isString(request.resource.data.title, 160)
+          && isString(request.resource.data.body, 20000);
+        allow update: if memberOf(circle(circleId))
+          && (resource.data.authorUid == uid() || leaderOf(circle(circleId)))
+          && changedKeys().hasOnly(['title', 'body', 'updatedAt'])
+          && isString(request.resource.data.title, 160)
+          && isString(request.resource.data.body, 20000);
+        allow delete: if memberOf(circle(circleId)) && (resource.data.authorUid == uid() || leaderOf(circle(circleId)));
+      }
+
+      match /packs/{packId} {
+        allow read: if memberOf(circle(circleId));
+        allow create: if memberOf(circle(circleId))
+          && request.resource.data.createdByUid == uid()
+          && request.resource.data.keys().hasOnly(['title', 'description', 'passages', 'questions', 'notes', 'createdByUid', 'createdBy', 'createdAt', 'updatedAt'])
+          && isString(request.resource.data.title, 160)
+          && isString(request.resource.data.description, 2000)
+          && validPointerList(request.resource.data.passages, 200)
+          && validPointerList(request.resource.data.questions, 100)
+          && isString(request.resource.data.notes, 20000);
+        // Packs belong to the circle: every member may improve them.
+        allow update: if memberOf(circle(circleId))
+          && changedKeys().hasOnly(['title', 'description', 'passages', 'questions', 'notes', 'updatedAt'])
+          && isString(request.resource.data.title, 160)
+          && isString(request.resource.data.description, 2000)
+          && validPointerList(request.resource.data.passages, 200)
+          && validPointerList(request.resource.data.questions, 100)
+          && isString(request.resource.data.notes, 20000);
+        allow delete: if memberOf(circle(circleId)) && (resource.data.createdByUid == uid() || leaderOf(circle(circleId)));
+      }
+    }
+
+    // Everything else is closed.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

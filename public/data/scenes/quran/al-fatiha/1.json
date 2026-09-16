@@ -1,0 +1,30 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 4,
+      "title": "Opening and Divine Attributes",
+      "caption": "The passage begins by invoking the name of Allah, described as Most Gracious and Most Merciful (1). It then states that all praise belongs to Allah, who is the Cherisher and Sustainer of all worlds (2). The text repeats the attributes of Most Gracious and Most Merciful (3), and identifies Allah as the Master of the Day of Judgment (4).",
+      "visualPrompt": "A vast, serene desert landscape at dawn. The sun is just rising, casting long shadows. In the foreground, a single, ancient olive tree stands, its branches reaching towards the sky. The overall mood is one of peace and grandeur. No human figures or religious symbols are present.",
+      "id": "s1"
+    },
+    {
+      "from": 5,
+      "to": 5,
+      "title": "Worship and Seeking Aid",
+      "caption": "The speaker declares that only Allah is worshipped, and only Allah's aid is sought (5).",
+      "visualPrompt": "A lone, open hand reaching upwards towards a bright, unseen light. The hand is depicted from a low angle, against a clear, blue sky. The background is blurred, suggesting focus on the gesture. The mood is one of earnest seeking and devotion.",
+      "id": "s2"
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "title": "Request for Guidance",
+      "caption": "The speaker asks to be guided to the straight way (6). This way is further described as the path of those who have received grace, not those who have incurred wrath or gone astray (7).",
+      "visualPrompt": "A winding, well-trodden path through a lush, green valley, bathed in warm sunlight. The path leads towards a distant, bright horizon. On either side of the path, there are healthy, vibrant plants. The mood is hopeful and clear. No human figures are visible on the path.",
+      "id": "s3"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T06:53:55.374Z"
+}

@@ -1,0 +1,54 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 5,
+      "title": "The First Day: Light",
+      "caption": "In the beginning, the earth was formless and dark, covered by water. Light was made, and it was separated from the darkness. The light was called Day, and the darkness was called Night.",
+      "visualPrompt": "A vast, dark, watery expanse. A bright, glowing light source is emerging or expanding, illuminating part of the scene, contrasting with deep shadows. No visible land.",
+      "id": "s1"
+    },
+    {
+      "from": 6,
+      "to": 8,
+      "title": "The Second Day: Sky",
+      "caption": "A firmament was made to divide the waters. This firmament separated the waters below it from the waters above it. The firmament was called Heaven.",
+      "visualPrompt": "A clear division between two bodies of water. Below is a calm, dark ocean. Above, a vast, empty sky stretches, with clouds or mist suggesting water above it.",
+      "id": "s2"
+    },
+    {
+      "from": 9,
+      "to": 13,
+      "title": "The Third Day: Land and Plants",
+      "caption": "The waters under the heaven gathered into one place, and dry land appeared. The dry land was called Earth, and the gathered waters were called Seas. The earth then brought forth all kinds of plants, herbs, and fruit trees.",
+      "visualPrompt": "A landscape showing newly emerged dry land, with distinct bodies of water (seas) visible. Various types of green plants, herbs, and trees are rapidly growing or already flourishing on the land.",
+      "id": "s3"
+    },
+    {
+      "from": 14,
+      "to": 19,
+      "title": "The Fourth Day: Lights",
+      "caption": "Lights were made in the firmament of heaven to divide day and night and to mark seasons and years. Two great lights were made: a greater light for the day and a lesser light for the night, along with stars. They were set in the sky to shine upon the earth.",
+      "visualPrompt": "A celestial scene. A large, bright sun dominates one side, a full moon and numerous stars on the other. They are positioned in a vast, dark sky above the earth.",
+      "id": "s4"
+    },
+    {
+      "from": 20,
+      "to": 23,
+      "title": "The Fifth Day: Living Creatures",
+      "caption": "The waters brought forth living creatures, and the air brought forth birds. Great sea creatures and every kind of living creature that moves in the water were created, along with every kind of winged bird. They were blessed to increase and fill the waters and the earth.",
+      "visualPrompt": "A vibrant scene combining ocean and sky. Various fish, whales, and other sea creatures swim in clear waters. Above, many different kinds of birds fly in the sky.",
+      "id": "s5"
+    },
+    {
+      "from": 24,
+      "to": 31,
+      "title": "The Sixth Day: Animals and Humans",
+      "caption": "The earth brought forth living creatures: cattle, creeping things, and wild beasts. Then, male and female humans were created. They were blessed to multiply, fill the earth, and rule over all living creatures. All plants and fruit were given for food to humans and animals.",
+      "visualPrompt": "A diverse landscape featuring various land animals: cattle grazing, small creatures crawling, and wild beasts. In the foreground, a man and a woman stand together, looking out over the abundant earth. The scene is peaceful and full of life.",
+      "id": "s6"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T06:53:07.187Z"
+}

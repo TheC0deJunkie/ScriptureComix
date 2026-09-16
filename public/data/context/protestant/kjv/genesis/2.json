@@ -1,0 +1,112 @@
+{
+  "summary": "This chapter describes the completion of creation and God's rest on the seventh day (vv. 1-3). It then provides a more detailed account of the creation of man from dust and the planting of the Garden of Eden (vv. 4-9). God places the man in the garden, gives him a command about a specific tree, and then creates animals (vv. 15-19). Finding no suitable helper among the animals, God creates woman from the man's rib (vv. 21-22), and the chapter concludes with the man's recognition of her and a statement about marriage (vv. 23-25).",
+  "setting": "The setting is immediately after the completion of the heavens and the earth (vv. 1-4). The specific location is the Garden of Eden, which God planted eastward in a region also called Eden (v. 8). The text describes a time before rain fell on the earth and before humans tilled the ground, with a mist watering the surface (v. 5-6).",
+  "events": [
+    {
+      "ref": "vv. 1-3",
+      "what": "The heavens and earth are finished, and God rests on the seventh day, blessing and sanctifying it."
+    },
+    {
+      "ref": "vv. 4-7",
+      "what": "A new account describes the creation of the earth and heavens, noting the lack of rain and a tiller, followed by God forming man from dust and breathing life into him."
+    },
+    {
+      "ref": "vv. 8-9",
+      "what": "God plants a garden in Eden, places the man there, and causes various trees to grow, including the tree of life and the tree of knowledge of good and evil."
+    },
+    {
+      "ref": "vv. 10-14",
+      "what": "A river flows from Eden, watering the garden, and then divides into four rivers: Pison, Gihon, Hiddekel (Tigris), and Euphrates."
+    },
+    {
+      "ref": "vv. 15-17",
+      "what": "God places the man in the garden to tend it and commands him not to eat from the tree of the knowledge of good and evil, warning of death."
+    },
+    {
+      "ref": "v. 18",
+      "what": "God observes that it is not good for the man to be alone and decides to make a helper for him."
+    },
+    {
+      "ref": "vv. 19-20",
+      "what": "God forms animals and birds and brings them to the man to name, but no suitable helper is found among them."
+    },
+    {
+      "ref": "vv. 21-22",
+      "what": "God causes the man to sleep, takes a rib from him, and forms a woman from the rib, bringing her to the man."
+    },
+    {
+      "ref": "vv. 23-25",
+      "what": "The man recognizes the woman as part of himself, names her Woman, and they are both naked without shame."
+    }
+  ],
+  "people": [
+    {
+      "name": "Lord God",
+      "role": "Creator of the heavens, earth, man, animals, and woman; planter of the garden; giver of commands."
+    },
+    {
+      "name": "Man (Adam)",
+      "role": "Formed from dust; placed in the garden to tend it; given a command; names animals; receives woman as a helper."
+    },
+    {
+      "name": "Woman",
+      "role": "Formed from man's rib to be a helper; brought to the man; named by the man."
+    }
+  ],
+  "terms": [
+    {
+      "term": "Sanctified",
+      "meaning": "Set apart as holy or sacred (v. 3)."
+    },
+    {
+      "term": "Generations",
+      "meaning": "An account or history of the origins of something (v. 4)."
+    },
+    {
+      "term": "Eden",
+      "meaning": "A place name, specifically a garden planted by God (v. 8). The text describes its location relative to rivers (vv. 10-14)."
+    },
+    {
+      "term": "Bdellium",
+      "meaning": "A fragrant gum resin mentioned alongside gold and onyx stone (v. 12)."
+    },
+    {
+      "term": "Onyx stone",
+      "meaning": "A type of gemstone (v. 12)."
+    },
+    {
+      "term": "Help meet",
+      "meaning": "A helper suitable for him; a counterpart or complement (v. 18)."
+    }
+  ],
+  "readings": [
+    {
+      "tradition": "Historical-critical scholarship",
+      "view": "This chapter is often identified as a distinct creation account (often called the 'J' or Yahwist source) from Genesis 1, noting differences in divine names (Lord God vs. God), literary style, and the order of creation events, with a focus on humanity's relationship with God and the land."
+    },
+    {
+      "tradition": "Jewish tradition",
+      "view": "Genesis 2 is read as an elaboration of Genesis 1, providing specific details about the creation of humanity, the Garden of Eden, the origin of moral law through God's command, and the establishment of marriage, emphasizing humanity's unique role and responsibilities."
+    },
+    {
+      "tradition": "Christian tradition (general)",
+      "view": "This chapter is understood as detailing the special creation of humanity, the establishment of marriage as a divine institution, and the initial state of innocence for Adam and Eve in a perfect environment before the introduction of sin."
+    },
+    {
+      "tradition": "Islamic tradition",
+      "view": "While not directly from the Quran, Islamic scholarship often refers to biblical narratives. The creation of Adam and Eve, their placement in a garden, and a divine command are themes present in Islamic texts, though the details and theological interpretations differ. The garden is often seen as a place of testing."
+    }
+  ],
+  "oftenQuoted": [
+    {
+      "ref": "v. 18",
+      "caution": "This verse is part of the narrative describing God's decision to create a companion for the man after placing him in the Garden of Eden and giving him a command. The surrounding text shows God first creating animals for the man to name, but finding no suitable helper among them, leading to the creation of woman."
+    },
+    {
+      "ref": "v. 24",
+      "caution": "This verse appears as a concluding statement following the creation of woman from man's rib and the man's joyful recognition of her. It describes the nature of the marital bond as a result of this foundational act of creation."
+    }
+  ],
+  "generatedAt": "2026-09-16T09:30:26.272Z",
+  "model": "gemini-2.5-flash"
+}

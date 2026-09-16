@@ -1,0 +1,104 @@
+{
+  "summary": "The passage begins by invoking Allah's name and praising Him with several attributes, including being Most Gracious, Most Merciful, and Master of the Day of Judgment (ayahs 1-4). It then declares that the speaker(s) worship only Allah and seek aid only from Him (ayah 5). Finally, it asks for guidance to a 'straight way' (ayah 6). This path is described as the way of those who have received grace, distinct from those who have incurred wrath or gone astray (ayah 7).",
+  "setting": "The text does not specify a historical time or place for this passage. It is presented as an invocation or prayer, addressing Allah directly.",
+  "events": [
+    {
+      "ref": "ayah 1",
+      "what": "The passage begins with an invocation of Allah's name, identifying Him as 'Most Gracious, Most Merciful'."
+    },
+    {
+      "ref": "ayah 2",
+      "what": "It then declares praise for Allah, describing Him as the 'Cherisher and Sustainer of the worlds'."
+    },
+    {
+      "ref": "ayah 3",
+      "what": "The attributes 'Most Gracious, Most Merciful' are repeated, reinforcing the earlier description."
+    },
+    {
+      "ref": "ayah 4",
+      "what": "Allah is further identified as the 'Master of the Day of Judgment', emphasizing His ultimate authority."
+    },
+    {
+      "ref": "ayah 5",
+      "what": "The speaker(s) declare that they worship only Allah and seek aid only from Him, shifting from praise to a statement of devotion and dependence."
+    },
+    {
+      "ref": "ayah 6",
+      "what": "Following this declaration, a request is made to be shown the 'straight way', indicating a desire for guidance."
+    },
+    {
+      "ref": "ayah 7",
+      "what": "This 'straight way' is further described as the path of those who have received grace, not the path of those who have incurred wrath or gone astray, clarifying the nature of the desired guidance."
+    }
+  ],
+  "people": [
+    {
+      "name": "Allah",
+      "role": "The one being invoked, praised, worshipped, and from whom aid and guidance are sought."
+    },
+    {
+      "name": "we",
+      "role": "The speaker(s) who are praising Allah, worshipping Him, seeking His aid, and asking for guidance."
+    },
+    {
+      "name": "those on whom Thou hast bestowed Thy Grace",
+      "role": "A group whose path is presented as the 'straight way' to be followed."
+    },
+    {
+      "name": "those whose (portion) is not wrath, and who go not astray",
+      "role": "A group whose path is presented as the way *not* to follow, contrasted with the 'straight way'."
+    }
+  ],
+  "terms": [
+    {
+      "term": "Allah",
+      "meaning": "The Arabic word for God, used in Islam."
+    },
+    {
+      "term": "Cherisher and Sustainer",
+      "meaning": "Attributes describing Allah as the one who nurtures, cares for, and provides for all creation."
+    },
+    {
+      "term": "Day of Judgment",
+      "meaning": "A future time when all people will be judged by Allah for their deeds."
+    },
+    {
+      "term": "straight way",
+      "meaning": "A path or course of action that is correct, righteous, or divinely guided."
+    },
+    {
+      "term": "Grace",
+      "meaning": "Divine favor, blessing, or mercy bestowed by Allah."
+    },
+    {
+      "term": "wrath",
+      "meaning": "Divine anger or displeasure, often associated with punishment for wrongdoing."
+    },
+    {
+      "term": "go astray",
+      "meaning": "To deviate from the correct path or guidance, to err or wander from truth."
+    }
+  ],
+  "readings": [
+    {
+      "tradition": "Muslim",
+      "view": "This passage is considered the opening chapter of the Quran and is recited in every unit of the daily ritual prayers (salat). It is often seen as a comprehensive summary of the Quran's core message and a foundational prayer."
+    },
+    {
+      "tradition": "Islamic scholarship",
+      "view": "Some scholars interpret the structure of the Surah as moving from praise of God to a declaration of human dependence on God, culminating in a petition for guidance, thus outlining the proper relationship between humanity and the divine."
+    },
+    {
+      "tradition": "Historical-critical scholarship",
+      "view": "This approach examines the Surah as an early example of an Islamic prayer or invocation, analyzing its linguistic features and theological statements within the context of early Islamic religious expression and its function as a supplication."
+    }
+  ],
+  "oftenQuoted": [
+    {
+      "ref": "ayah 5",
+      "caution": "This ayah, 'Thee do we worship, and Thine aid we seek,' is often quoted to emphasize the principle of monotheism and reliance solely on Allah. In its context, it follows several verses praising Allah's attributes and precedes a direct request for guidance, serving as a declaration of exclusive devotion before making a petition."
+    }
+  ],
+  "generatedAt": "2026-09-15T21:19:31.700Z",
+  "model": "gemini-2.5-flash"
+}

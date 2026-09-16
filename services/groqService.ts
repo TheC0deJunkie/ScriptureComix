@@ -1,4 +1,5 @@
 import { QuizResponse } from "../types";
+import { NEUTRAL_CHARTER } from "./neutrality";
 
 // Groq integration helper
 // NOTE: Never commit API keys into source. Set these in your environment or Vite .env files:
@@ -65,18 +66,23 @@ export const generateQuiz = async (book: string, chapter: number) : Promise<Quiz
 
 export const explainText = async (text: string, context: string, type: string = 'simple'): Promise<string> => {
   const promptsMap = {
-    historical: `Provide historical, cultural, and archaeological context for this text: "${text}". (Context: ${context}). Keep it interesting and under 100 words.`,
-    theological: `Explain theological meaning and cross-references for: "${text}". (Context: ${context}). Keep it under 100 words.`,
-    word_study: `Analyze key original language words in: "${text}". Explain their nuance. (Context: ${context}). Keep under 100 words.`,
-    application: `Give a modern life application for: "${text}". (Context: ${context}). Keep it inspiring and under 80 words.`,
-    deep: `Provide a deep-dive commentary explanation for: "${text}". (Context: ${context}).`,
-    simple: `Explain simply for a modern reader: "${text}" (Context: ${context}). Keep it under 50 words.`
+    historical: `Give the historical, cultural, and geographical setting of this text: "${text}" (from ${context}). Under 100 words.`,
+    theological: `Describe how the main traditions that read this text understand it: "${text}" (from ${context}). One neutral sentence per tradition, endorsing none. Under 120 words.`,
+    word_study: `Explain the key original-language words in: "${text}" (from ${context}). Plain meaning and any range of meaning scholars note. Under 100 words.`,
+    application: `Say what this text meant to its first audience and what questions it raises for a reader today: "${text}" (from ${context}). Do not tell the reader what to believe or do. Under 80 words.`,
+    deep: `Give a thorough, neutral commentary on: "${text}" (from ${context}). What happens, what led to it, what follows, where readings differ.`,
+    simple: `In plain words, what does this say and what is happening around it? "${text}" (from ${context}). Under 50 words.`
   } as Record<string, string>;
 
-  const chosen = (promptsMap[type] as string) || promptsMap.simple;
+  const chosen = `${NEUTRAL_CHARTER}\n\nTask: ${(promptsMap[type] as string) || promptsMap.simple}`;
 
   const raw = await callGroq(chosen, { maxTokens: 300, temperature: 0.2 });
   return raw;
 };
 
-export default { generateQuiz, explainText };
+/** Raw JSON-oriented completion (deterministic). Caller parses the result. */
+export const generateJson = async (prompt: string, maxTokens: number = 2000): Promise<string> => {
+  return callGroq(prompt, { maxTokens, temperature: 0 });
+};
+
+export default { generateQuiz, explainText, generateJson };

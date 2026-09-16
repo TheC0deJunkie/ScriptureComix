@@ -23,12 +23,11 @@ export const DonationBanner: React.FC<Props> = ({ onDonate }) => {
                 </div>
                 <div>
                   <h3 className="font-bold text-red-800 text-lg mb-1 font-serif italic">
-                    A humble request from the creators...
+                    A note from the people who make this
                   </h3>
                   <p className="text-slate-800 text-sm md:text-base leading-relaxed max-w-3xl">
-                    This project is kept alive by readers like you. We refuse to put ads on God’s Word. 
-                    We’re using AI models we can barely afford, and honestly... we might not make it through this month without help. 
-                    <span className="font-bold block mt-2">If this project has blessed you, even $1 makes a real difference.</span>
+                    ScriptureComix is free and has no ads. The pictures, study notes and quizzes cost real money to generate once, and readers cover that.
+                    <span className="font-bold block mt-2">If it has helped you read, even $1 keeps it going.</span>
                   </p>
                   
                   <div className="flex flex-wrap items-center gap-3 mt-4">
@@ -41,7 +40,7 @@ export const DonationBanner: React.FC<Props> = ({ onDonate }) => {
                     <button onClick={onDonate} className="bg-white text-red-700 border border-red-200 px-4 py-2 rounded-full font-medium hover:bg-red-50 transition-colors">
                       $5
                     </button>
-                    <span className="text-xs text-slate-500 italic ml-2">If you can’t donate right now, we still love you ❤️</span>
+                    <span className="text-xs text-slate-500 italic ml-2">Reading is free either way.</span>
                   </div>
                 </div>
               </div>
@@ -60,7 +59,7 @@ export const DonationBanner: React.FC<Props> = ({ onDonate }) => {
           <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsExpanded(true)}>
              <div className="flex items-center gap-2 text-sm font-medium text-red-800">
                <Heart size={16} fill="currentColor" className="text-red-600" />
-               <span>Please help keep ScriptureComix online...</span>
+               <span>Help keep ScriptureComix free</span>
              </div>
              <ChevronDown size={16} className="text-red-400" />
           </div>

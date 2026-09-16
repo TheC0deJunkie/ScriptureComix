@@ -1,0 +1,66 @@
+{
+  "sets": [
+    {
+      "id": "ai-1789556790570",
+      "source": "ai",
+      "createdAt": "2026-09-16T11:06:30.570Z",
+      "questions": [
+        {
+          "question": "What happened when Moses threw his shepherd's staff on the ground?",
+          "options": [
+            "It turned into a tree branch.",
+            "It turned into a snake and then disappeared.",
+            "It turned into a snake, and then back into a staff when he grabbed its tail.",
+            "It turned into a stone."
+          ],
+          "correctAnswer": 2,
+          "explanation": "According to verses 3-4, the staff turned into a snake when thrown down, and then back into a staff when Moses grabbed its tail."
+        },
+        {
+          "question": "What was Moses's initial concern about going to the Israelites?",
+          "options": [
+            "He was worried they wouldn't believe the Lord had appeared to him.",
+            "He felt he wasn't good with words.",
+            "He was afraid of Pharaoh.",
+            "He didn't want to leave his father-in-law, Jethro."
+          ],
+          "correctAnswer": 0,
+          "explanation": "Verse 1 states Moses's concern: 'What if they won’t believe me or listen to me? What if they say, ‘The Lord never appeared to you’?'"
+        },
+        {
+          "question": "What was the second miraculous sign the Lord showed Moses?",
+          "options": [
+            "His staff turning into a snake.",
+            "His hand becoming white with a severe skin disease and then healthy again.",
+            "Water from the Nile turning to blood.",
+            "Aaron appearing to meet him in the wilderness."
+          ],
+          "correctAnswer": 1,
+          "explanation": "Verses 6-7 describe the second sign: Moses's hand became 'white as snow with a severe skin disease' and then was restored to health."
+        },
+        {
+          "question": "What does the phrase 'a bridegroom of blood' refer to in the passage?",
+          "options": [
+            "Moses's marriage to Zipporah.",
+            "The Lord's anger with Moses.",
+            "The act of circumcision performed by Zipporah.",
+            "The blood of the firstborn son."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 26 clarifies that when Zipporah said 'a bridegroom of blood,' 'she was referring to the circumcision.'"
+        },
+        {
+          "question": "Who did the Lord appoint to be Moses's spokesman to the people?",
+          "options": [
+            "Jethro, his father-in-law.",
+            "One of Moses's sons.",
+            "Aaron, his brother.",
+            "Moses himself, after God instructed him."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verses 14 and 16 state that the Lord designated Aaron, Moses's brother, saying, 'Aaron will be your spokesman to the people.'"
+        }
+      ]
+    }
+  ]
+}

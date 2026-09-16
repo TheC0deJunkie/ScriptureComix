@@ -1,0 +1,66 @@
+{
+  "sets": [
+    {
+      "id": "ai-1789574194446",
+      "source": "ai",
+      "createdAt": "2026-09-16T15:56:34.446Z",
+      "questions": [
+        {
+          "question": "What happened when Moses threw his staff on the ground the first time God instructed him?",
+          "options": [
+            "It turned into a bird.",
+            "It stayed a staff.",
+            "It turned into a snake.",
+            "It disappeared."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 3 states: 'Wa i ponsa pansi, ya penduka inyoka' (He threw it down, it turned into a snake)."
+        },
+        {
+          "question": "What was Moses' main concern when God told him to go speak to the people?",
+          "options": [
+            "He was afraid of Pharaoh.",
+            "He felt he was not good at speaking.",
+            "He didn't believe the people would listen.",
+            "He didn't want to leave Jethro."
+          ],
+          "correctAnswer": 1,
+          "explanation": "Verse 10: 'E, Nkosi, a ngi siye umuntu o namazwi... ngi butuntu emlonyeni, ngi butuntu na solimini' (Oh, Lord, I am not a man of words... I am slow of speech and slow of tongue)."
+        },
+        {
+          "question": "According to the passage, what was the primary reason God gave Moses these miraculous signs?",
+          "options": [
+            "To impress Pharaoh with his power.",
+            "To show Moses he was the true God.",
+            "So the people would believe that the Lord had appeared to Moses.",
+            "To train Moses as a magician."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 5 says: 'Ukuba ba ze ba kolwe ukuti, uJehova... u bonakele kuwe' (So that they may believe that the Lord... has appeared to you). Verse 8 reinforces this: 'uma be nga kolwa uwe... ba ya kukolwa izwi lesibonakaliso samuva' (if they do not believe you... they will believe the word of the latter sign)."
+        },
+        {
+          "question": "What did Zipporah do when the Lord sought to kill Moses at the lodging place?",
+          "options": [
+            "She prayed to the Lord.",
+            "She argued with Moses.",
+            "She took a sharp stone and circumcised her son.",
+            "She ran away in fear."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 25 states: 'uZipora wa tabata itye elibukali, wa nguma ijwabu lendodana yake' (Zipporah took a sharp stone and cut off the foreskin of her son)."
+        },
+        {
+          "question": "What was Aaron's role in helping Moses communicate with the people?",
+          "options": [
+            "He would perform all the miracles himself.",
+            "He would be Moses' mouth, speaking for him to the people.",
+            "He would gather food for their journey.",
+            "He would lead the people into Egypt."
+          ],
+          "correctAnswer": 1,
+          "explanation": "Verse 16 clarifies: 'U ya ku kukulumela ebantwini, a be umlomo kuwe' (He shall speak for you to the people, and he shall be a mouth for you)."
+        }
+      ]
+    }
+  ]
+}

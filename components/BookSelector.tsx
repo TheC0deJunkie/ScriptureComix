@@ -10,6 +10,11 @@ interface BookSelectorProps {
   onBookChange: (slug: string, displayName: string) => void;
   onChapterChange: (chapter: number) => void;
   onTranslationChange: (translationId: string) => void;
+  /**
+   * Header "sentence" layout: book › chapter · translation, borderless, no
+   * verse count. Copyright attribution still appears when a translation needs it.
+   */
+  compact?: boolean;
 }
 
 export function BookSelector({
@@ -20,6 +25,7 @@ export function BookSelector({
   onBookChange,
   onChapterChange,
   onTranslationChange,
+  compact = false,
 }: BookSelectorProps) {
   const [manifest, setManifest] = useState<CanonManifest | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,6 +57,63 @@ export function BookSelector({
   }
 
   const isQuran = tradition === 'quran';
+
+  if (compact) {
+    const sel = 'font-bold bg-transparent outline-none text-sm cursor-pointer px-1 py-1.5 rounded hover:bg-yellow-100';
+    return (
+      <div className="book-selector flex items-center gap-0.5">
+        <label htmlFor="book-select" className="sr-only">{labels.book}</label>
+        <select
+          id="book-select"
+          value={selectedBook || ''}
+          onChange={(e) => {
+            const book = manifest.books.find(b => b.slug === e.target.value);
+            if (book) {
+              onBookChange(book.slug, book.displayName);
+              onChapterChange(1);
+            }
+          }}
+          className={sel + ' w-[9.5rem]'}
+        >
+          <option value="">{labels.book}…</option>
+          {Array.from(sections.entries()).map(([section, books]) => (
+            <optgroup key={section} label={section}>
+              {books.map(b => <option key={b.slug} value={b.slug}>{b.displayName}</option>)}
+            </optgroup>
+          ))}
+        </select>
+        {currentBook && !isQuran && currentBook.chapters.length > 1 && (
+          <>
+            <span className="text-slate-300 font-black select-none">›</span>
+            <label htmlFor="chapter-select" className="sr-only">{labels.chapter}</label>
+            <select id="chapter-select" value={selectedChapter || ''} onChange={(e) => onChapterChange(Number(e.target.value))} className={sel + ' w-14'} title={labels.chapter}>
+              {currentBook.chapters.map((_, i) => <option key={i + 1} value={i + 1}>{i + 1}</option>)}
+            </select>
+          </>
+        )}
+        {manifest.translations.length > 0 && (
+          <>
+            <span className="text-slate-300 select-none">·</span>
+            <label htmlFor="translation-select" className="sr-only">Translation</label>
+            <select
+              id="translation-select"
+              value={selectedTranslation || manifest.translations[0]?.id || ''}
+              onChange={(e) => onTranslationChange(e.target.value)}
+              className={`${sel} text-slate-500 font-semibold w-[10rem]`}
+              title={selectedTranslationMeta?.copyright || 'Translation'}
+            >
+              {manifest.translations.map(t => (
+                <option key={t.id} value={t.id}>{t.displayName}{t.copyright ? ' ©' : ''}</option>
+              ))}
+            </select>
+          </>
+        )}
+        {selectedTranslationMeta?.copyright && (
+          <span className="text-[10px] text-slate-400 italic max-w-[10rem] truncate" title={selectedTranslationMeta.copyright}>{selectedTranslationMeta.copyright}</span>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="book-selector flex flex-wrap items-start gap-2">
@@ -134,7 +197,9 @@ export function BookSelector({
       {/* Verse/Ayah count display */}
       {currentBook && selectedChapter && (
         <div className="verse-count text-xs text-gray-500 self-center">
-          {currentBook.chapters[selectedChapter - 1]} {labels.verse.toLowerCase()}s
+          {currentBook.chapters[selectedChapter - 1]
+            ? `${currentBook.chapters[selectedChapter - 1]} ${labels.verse.toLowerCase()}s`
+            : `${labels.verse.toLowerCase()} count learned on first read`}
         </div>
       )}
     </div>

@@ -1,0 +1,66 @@
+{
+  "sets": [
+    {
+      "id": "ai-1789541236325",
+      "source": "ai",
+      "createdAt": "2026-09-16T06:47:16.325Z",
+      "questions": [
+        {
+          "question": "What was special about the bush Moses saw at Horeb?",
+          "options": [
+            "It was glowing brightly but not hot to the touch.",
+            "It was burning with fire but not being consumed.",
+            "It was speaking in a human voice without any fire.",
+            "It was surrounded by a bright light, but the bush itself was normal."
+          ],
+          "correctAnswer": 1,
+          "explanation": "Verse 2 says, 'behold, the bush burned with fire, and the bush was not consumed.'"
+        },
+        {
+          "question": "What did Moses say when God first called his name from the bush?",
+          "options": [
+            "\"Who are you?\"",
+            "\"I am here.\"",
+            "\"Here am I.\"",
+            "\"What do you want?\""
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 4 states, 'God called unto him out of the midst of the bush, and said, Moses, Moses. And he said, Here am I.'"
+        },
+        {
+          "question": "Why did God tell Moses to take off his shoes?",
+          "options": [
+            "As a sign of humility before God.",
+            "To prepare for a long journey through the desert.",
+            "Because the ground he was standing on was holy.",
+            "So he could feel the earth beneath his feet."
+          ],
+          "correctAnswer": 2,
+          "explanation": "Verse 5 says, 'put off thy shoes from off thy feet, for the place whereon thou standest is holy ground.'"
+        },
+        {
+          "question": "What does the phrase 'a land flowing with milk and honey' mean in this passage?",
+          "options": [
+            "A land where there are many cows and bees.",
+            "A land that is very fertile and full of good things.",
+            "A land where people drink milk and eat honey every day.",
+            "A land that is sweet and easy to live in without any work."
+          ],
+          "correctAnswer": 1,
+          "explanation": "Verses 8 and 17 describe the land God will bring the Israelites to as 'a good land and a large, unto a land flowing with milk and honey,' implying it is rich and abundant, contrasted with their 'affliction in Egypt.'"
+        },
+        {
+          "question": "When Moses asked God what His name was, what specific name did God tell him to use for the children of Israel?",
+          "options": [
+            "The Lord God of your fathers.",
+            "I Am That I Am.",
+            "The God of Abraham, Isaac, and Jacob.",
+            "The God who will deliver them."
+          ],
+          "correctAnswer": 1,
+          "explanation": "Verse 14 says, 'And God said unto Moses, I Am That I Am: and he said, Thus shalt thou say unto the children of Israel, I Am hath sent me unto you.'"
+        }
+      ]
+    }
+  ]
+}

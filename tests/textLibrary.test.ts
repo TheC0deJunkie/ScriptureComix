@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { extractChapter } from '../services/textLibrary';
+import { describe, it, expect } from 'vitest';
+import { extractChapter, resolveBook } from '../services/textLibrary';
+import { CanonManifest } from '../services/types';
 
 describe('extractChapter', () => {
   const sampleBookData: Record<string, string> = {
@@ -13,8 +14,14 @@ describe('extractChapter', () => {
   it('returns verses for a specific chapter', () => {
     const result = extractChapter(sampleBookData, 1);
     expect(result).toHaveLength(3);
-    expect(result[0]).toEqual({ verse: 1, text: 'In the beginning God created the heavens and the earth.' });
-    expect(result[2]).toEqual({ verse: 3, text: 'And God said, Let there be light.' });
+    expect(result[0]).toMatchObject({ verse: 1, text: 'In the beginning God created the heavens and the earth.' });
+    expect(result[2]).toMatchObject({ verse: 3, text: 'And God said, Let there be light.' });
+  });
+
+  it('tags every verse with its source, defaulting to bundled', () => {
+    const result = extractChapter(sampleBookData, 1, false, { '1:2': 'reconstructed' });
+    expect(result[0].source).toBe('bundled');
+    expect(result[1].source).toBe('reconstructed');
   });
 
   it('returns empty array for non-existent chapter', () => {
@@ -38,28 +45,53 @@ describe('extractChapter', () => {
     };
     const result = extractChapter(quranData, 1, true);
     expect(result).toHaveLength(3);
-    expect(result[0]).toEqual({ verse: 1, text: 'All praise is due to Allah' });
+    expect(result[0]).toMatchObject({ verse: 1, text: 'All praise is due to Allah' });
   });
 
   it('returns only verses from the specified chapter (not adjacent chapters)', () => {
     const result = extractChapter(sampleBookData, 2);
     expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({ verse: 1, text: 'Thus the heavens and the earth were finished.' });
+    expect(result[0]).toMatchObject({ verse: 1, text: 'Thus the heavens and the earth were finished.' });
   });
 });
 
-describe('loadChapterText source validation', () => {
-  it('does not import from bible-translations-master', async () => {
+describe('resolveBook', () => {
+  const manifest: CanonManifest = {
+    tradition: 'protestant',
+    displayName: 'Protestant',
+    books: [
+      { slug: 'genesis', displayName: 'Genesis', chapters: [31] },
+      { slug: 'song-of-solomon', displayName: 'Song of Solomon', chapters: [17] },
+      { slug: '1-john', displayName: '1 John', chapters: [10] },
+    ],
+    translations: [{ id: 'kjv', displayName: 'KJV', isPublicDomain: true }],
+  };
+
+  it('matches by slug, display name, and loose spelling', () => {
+    expect(resolveBook(manifest, 'genesis')?.slug).toBe('genesis');
+    expect(resolveBook(manifest, 'Genesis')?.slug).toBe('genesis');
+    expect(resolveBook(manifest, 'Song Of Solomon')?.slug).toBe('song-of-solomon');
+    expect(resolveBook(manifest, '1 john')?.slug).toBe('1-john');
+    expect(resolveBook(manifest, 'Nope')).toBeUndefined();
+  });
+});
+
+describe('data-layer source validation', () => {
+  it('textLibrary does not import copyrighted source folders or glob-bundle data', async () => {
     const fs = await import('fs');
     const source = fs.readFileSync('services/textLibrary.ts', 'utf-8');
     expect(source).not.toContain('bible-translations-master');
     expect(source).not.toContain('import.meta.glob');
   });
 
-  it('loads via fetch from /data/ path', async () => {
+  it('all network reads go through the permanent scripture store', async () => {
     const fs = await import('fs');
-    const source = fs.readFileSync('services/textLibrary.ts', 'utf-8');
-    expect(source).toContain('/data/');
-    expect(source).toContain('fetch(');
+    const library = fs.readFileSync('services/textLibrary.ts', 'utf-8');
+    const store = fs.readFileSync('services/scriptureStore.ts', 'utf-8');
+    expect(library).not.toContain('fetch(');
+    expect(library).toContain("from './scriptureStore'");
+    expect(store).toContain('/data/');
+    expect(store).toContain('fetch(');
+    expect(store).toContain('indexedDB.open');
   });
 });

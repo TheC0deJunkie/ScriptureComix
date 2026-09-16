@@ -51,20 +51,20 @@ describe('canon completeness', () => {
     expect(m.tradition).toBe('quran');
   });
 
-  it('quran Al-Fatiha has 6 ayahs (Basmala excluded per Medina numbering)', () => {
+  it('quran Al-Fatiha has 7 ayahs (standard numbering, Basmala is ayah 1)', () => {
     const m = loadManifest('quran');
     expect(m).not.toBeNull();
     const fatiha = m.books[0];
     expect(fatiha.slug).toBe('al-fatiha');
-    expect(fatiha.chapters[0]).toBe(6);
+    expect(fatiha.chapters[0]).toBe(7);
   });
 
-  it('quran normalized total ayah count is 6235 (Basmala excluded from all surahs)', () => {
+  it('quran total ayah count is 6236 (standard numbering, Basmala is 1:1)', () => {
     const m = loadManifest('quran');
     expect(m).not.toBeNull();
     // Per project decision (CANON-04): Basmala NOT counted as verse 1.
-    // Normalized total is 6235 (not 6236), matching our public/data/quran/manifest.json.
+    // Standard Kufic count of 6236, matching our public/data/quran/manifest.json.
     const total = m.books.reduce((sum: number, b: any) => sum + b.chapters[0], 0);
-    expect(total).toBe(6235);
+    expect(total).toBe(6236);
   });
 });

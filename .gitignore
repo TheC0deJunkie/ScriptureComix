@@ -23,9 +23,20 @@ dist-ssr
 *.sln
 *.sw?
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+
 # Copyrighted Bible translations — generated locally, not committed
 public/data/protestant/niv/
 public/data/protestant/nlt/
 public/data/protestant/nkjv/
 public/data/protestant/nasb/
 public/data/catholic/nabre/
+
+# Firebase emulator state and logs
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log

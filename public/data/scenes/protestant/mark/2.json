@@ -1,0 +1,38 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 12,
+      "title": "The Roof and Forgiveness",
+      "caption": "Jesus is teaching in a crowded house in Capernaum. Four men bring a paralyzed man, but cannot reach Jesus. They lower the man through the roof. Jesus tells the man his sins are forgiven, which scribes question. Jesus then tells the man to get up and walk, and the man does.",
+      "visualPrompt": "A crowded, modest house interior. Sunlight streams from a hole in the ceiling. A paralyzed man on a mat is being lowered by ropes held by four men visible through the roof opening. Jesus is standing, looking at the man. Scribes are seated nearby, looking thoughtful or concerned. Many people are packed into the room, looking up in amazement.",
+      "id": "s1"
+    },
+    {
+      "from": 13,
+      "to": 17,
+      "title": "Levi's Call and Feast",
+      "caption": "Jesus walks by the sea and calls Levi, a tax collector, to follow him. Later, Jesus eats a meal in Levi's house with many tax collectors and others considered 'sinners.' Scribes and Pharisees question why Jesus eats with such people, and Jesus responds.",
+      "visualPrompt": "A bustling marketplace or port area near the sea. A man (Levi) is seated at a table, collecting money. Jesus stands before him, gesturing. In the background, a lively indoor dinner scene with many people, including Jesus and his disciples, eating and conversing. Some stern-looking scribes and Pharisees stand outside, observing the dinner.",
+      "id": "s2"
+    },
+    {
+      "from": 18,
+      "to": 22,
+      "title": "New Wine, New Cloth",
+      "caption": "People ask Jesus why his disciples do not fast, unlike the disciples of John and the Pharisees. Jesus responds with an analogy about a bridegroom and wedding guests. He then uses two more analogies: one about sewing new cloth onto an old garment, and another about putting new wine into old wineskins.",
+      "visualPrompt": "A group of people, including some Pharisees and disciples of John, standing and speaking with Jesus and his disciples. The setting could be outdoors, perhaps near a village path. Jesus is gesturing as he speaks. The mood is one of discussion, not confrontation.",
+      "id": "s3"
+    },
+    {
+      "from": 23,
+      "to": 28,
+      "title": "Plucking Grain on Sabbath",
+      "caption": "Jesus and his disciples walk through grain fields on the Sabbath. The disciples pluck grain as they go. Pharisees question Jesus, saying this is not lawful on the Sabbath. Jesus refers to an action by David and states that the Sabbath was made for man, not man for the Sabbath.",
+      "visualPrompt": "A field of ripe grain under a bright sky. Jesus and his disciples walk through it. Some disciples are plucking heads of grain. A group of Pharisees stands nearby, looking disapprovingly at the disciples and speaking to Jesus. The overall mood is calm but with a hint of tension.",
+      "id": "s4"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T08:22:41.454Z"
+}

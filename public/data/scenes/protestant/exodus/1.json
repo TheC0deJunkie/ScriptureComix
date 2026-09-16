@@ -1,0 +1,62 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 5,
+      "title": "Jacob's Family in Egypt",
+      "caption": "The text lists the names of Jacob's sons who came to Egypt with him. Including Jacob, the total number of his direct descendants who came to Egypt was seventy, not counting Joseph who was already there.",
+      "visualPrompt": "A group of men, representing Jacob's sons, standing together in a warm, fertile land, possibly near the Nile. They are dressed in ancient Near Eastern clothing. A sense of family unity and arrival.",
+      "id": "s1"
+    },
+    {
+      "from": 6,
+      "to": 7,
+      "title": "The Israelites Multiply",
+      "caption": "Joseph and all his brothers, and their entire generation, died. Afterward, the Israelites became very fruitful, increased greatly in number, and grew exceedingly mighty, filling the land.",
+      "visualPrompt": "A bustling scene showing many families, including children and adults, engaged in daily life in a fertile land. Houses and activity suggest a growing population. The mood is one of prosperity and expansion.",
+      "id": "s2"
+    },
+    {
+      "from": 8,
+      "to": 10,
+      "title": "A New King's Fear",
+      "caption": "A new king came to power in Egypt who did not know Joseph. He told his people that the Israelites were more numerous and stronger than them. He proposed a plan to deal shrewdly with them, fearing they might multiply further, join Egypt's enemies in war, and then leave the land.",
+      "visualPrompt": "An Egyptian pharaoh, seated on a throne in a grand hall, addressing a group of advisors or officials. The pharaoh appears stern and concerned. The advisors listen intently. Hieroglyphs might be subtly visible on the walls, but no specific words.",
+      "id": "s3"
+    },
+    {
+      "from": 11,
+      "to": 14,
+      "title": "Forced Labor and Affliction",
+      "caption": "The Egyptians placed taskmasters over the Israelites to oppress them with forced labor. The Israelites built supply cities, Pithom and Raamses, for Pharaoh. Despite the harsh treatment, the Israelites continued to multiply and grow, which distressed the Egyptians. The Egyptians made the Israelites serve rigorously, making their lives bitter with hard work in mortar, bricks, and field service.",
+      "visualPrompt": "A large construction site under the hot sun. Israelites, identifiable by their distinct clothing, are shown carrying bricks, mixing mortar, and working under the supervision of Egyptian taskmasters who hold whips. The mood is one of hardship and toil. Large, unfinished brick structures are in the background.",
+      "id": "s4"
+    },
+    {
+      "from": 15,
+      "to": 17,
+      "title": "Pharaoh's Order to Midwives",
+      "caption": "The king of Egypt spoke to two Hebrew midwives, Shiphrah and Puah. He commanded them to kill all newborn Hebrew boys but let the girls live. However, the midwives feared God and did not obey the king's command, saving the boys alive.",
+      "visualPrompt": "A dimly lit room where two women, Shiphrah and Puah, dressed as midwives, stand respectfully before the seated Pharaoh. The Pharaoh is gesturing, giving an order. The midwives exchange a subtle, knowing glance, conveying their internal conflict or resolve.",
+      "id": "s5"
+    },
+    {
+      "from": 18,
+      "to": 21,
+      "title": "Midwives' Explanation and Reward",
+      "caption": "The king called the midwives and asked why they had saved the boys. The midwives replied that Hebrew women are vigorous and give birth before the midwives can arrive. Because the midwives feared God, he dealt well with them, and the people continued to multiply and become very mighty. God also provided houses for the midwives.",
+      "visualPrompt": "Shiphrah and Puah are shown in a village setting, perhaps outside their homes, surrounded by healthy Hebrew children and families. They look content and respected. The scene conveys a sense of community and well-being.",
+      "id": "s6"
+    },
+    {
+      "from": 22,
+      "to": 22,
+      "title": "Decree to Drown Sons",
+      "caption": "Pharaoh then commanded all his people to throw every newborn Hebrew son into the Nile River, but to let every daughter live.",
+      "visualPrompt": "An Egyptian official, possibly a herald, stands in a public square or marketplace, unrolling a scroll and addressing a crowd of Egyptian citizens. The crowd listens with varied expressions, some perhaps grim or resigned. The Nile River is visible in the background.",
+      "id": "s7"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T06:46:53.859Z"
+}

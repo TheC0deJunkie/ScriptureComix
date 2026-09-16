@@ -1,0 +1,120 @@
+{
+  "summary": "God creates the heavens and the earth, which are initially formless and dark (vv. 1-2). Over six days, God speaks various elements and living creatures into existence, separating and naming them (vv. 3-25). On the sixth day, God creates humankind, male and female, in God's image, giving them dominion over the earth and its creatures (vv. 26-28). God provides food for all living things, and declares all creation \"very good\" (vv. 29-31).",
+  "setting": "The chapter describes the very beginning of existence (v. 1). The setting is a primordial, formless, and dark earth covered by water (v. 2). The wider situation is the initial state before any structured creation.",
+  "events": [
+    {
+      "ref": "v. 1",
+      "what": "God creates the heaven and the earth."
+    },
+    {
+      "ref": "v. 2",
+      "what": "The earth is formless, void, and dark, with the Spirit of God moving over waters."
+    },
+    {
+      "ref": "vv. 3-5",
+      "what": "God speaks light into existence, separating it from darkness and naming them Day and Night."
+    },
+    {
+      "ref": "vv. 6-8",
+      "what": "God creates a firmament to separate waters above from waters below, naming it Heaven."
+    },
+    {
+      "ref": "vv. 9-13",
+      "what": "God gathers the waters to reveal dry land, naming them Earth and Seas, and causes the earth to produce vegetation."
+    },
+    {
+      "ref": "vv. 14-19",
+      "what": "God creates lights in the firmament (sun, moon, stars) to divide day from night and mark time."
+    },
+    {
+      "ref": "vv. 20-23",
+      "what": "God creates living creatures in the waters and flying creatures, blessing them to multiply."
+    },
+    {
+      "ref": "vv. 24-25",
+      "what": "God creates land animals (cattle, creeping things, beasts)."
+    },
+    {
+      "ref": "vv. 26-28",
+      "what": "God creates humankind, male and female, in God's image, giving them dominion and blessing them to multiply."
+    },
+    {
+      "ref": "vv. 29-31",
+      "what": "God provides plants for food for humans and green herbs for animals, then declares all creation \"very good\"."
+    }
+  ],
+  "people": [
+    {
+      "name": "God",
+      "role": "The creator of all things."
+    },
+    {
+      "name": "Spirit of God",
+      "role": "Moves upon the waters before creation is fully ordered."
+    },
+    {
+      "name": "Man",
+      "role": "Created male and female in God's image, given dominion over other creatures."
+    }
+  ],
+  "terms": [
+    {
+      "term": "Firmament",
+      "meaning": "An expanse or solid dome, created by God to separate waters above from waters below (vv. 6-8)."
+    },
+    {
+      "term": "Void",
+      "meaning": "Empty or unfilled, describing the initial state of the earth (v. 2)."
+    },
+    {
+      "term": "Dominion",
+      "meaning": "The authority or control given to humankind over other living creatures and the earth (vv. 26, 28)."
+    },
+    {
+      "term": "Image of God",
+      "meaning": "The likeness in which humankind is created (v. 27). The text does not specify what this 'image' entails."
+    },
+    {
+      "term": "Replenish",
+      "meaning": "To fill completely, as in God's command to humankind to fill the earth (v. 28). Most modern translations use 'fill'."
+    }
+  ],
+  "readings": [
+    {
+      "tradition": "Jewish Tradition",
+      "view": "Often views Genesis 1 as a foundational text establishing God as the sole creator and emphasizing the goodness of creation. It highlights the order and purpose in God's design and the special role of humanity."
+    },
+    {
+      "tradition": "Christian Tradition (General)",
+      "view": "Often sees Genesis 1 as demonstrating God's power and sovereignty as creator. Many interpretations focus on the concept of humanity being made in God's image and the divine blessing to be fruitful and have dominion."
+    },
+    {
+      "tradition": "Historical-Critical Scholarship",
+      "view": "Often examines Genesis 1 as a priestly account (P source) within the Pentateuch, noting its structured, orderly presentation of creation, possibly in contrast to other ancient Near Eastern creation myths. It focuses on the literary and theological purposes of the text within its historical context."
+    },
+    {
+      "tradition": "Ethiopian Orthodox Tewahedo Tradition",
+      "view": "Emphasizes the Trinitarian aspect of creation, seeing references to \"God,\" \"Spirit of God,\" and \"Let us make man\" as indicative of the Holy Trinity's involvement. It also highlights the goodness of creation and humanity's unique position."
+    }
+  ],
+  "oftenQuoted": [
+    {
+      "ref": "v. 1",
+      "caution": "This verse is often quoted to assert God's role as the ultimate creator. The surrounding text describes the initial state of the earth as formless and void, and then details the six-day process of creation that follows."
+    },
+    {
+      "ref": "v. 3",
+      "caution": "This phrase is frequently used to illustrate God's power through speech. The surrounding text describes the first act of creation, where God separates light from darkness and names them Day and Night."
+    },
+    {
+      "ref": "v. 27",
+      "caution": "This verse is often quoted to define humanity's unique relationship with God. The surrounding text explains that humanity was created on the sixth day, given dominion over other creatures, and blessed to be fruitful and multiply."
+    },
+    {
+      "ref": "v. 31",
+      "caution": "This verse is often quoted to emphasize the inherent goodness of creation. The surrounding text is the concluding statement of the entire six-day creation account, summarizing God's judgment on all that was made."
+    }
+  ],
+  "generatedAt": "2026-09-16T06:53:22.481Z",
+  "model": "gemini-2.5-flash"
+}

@@ -1,0 +1,46 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 9,
+      "title": "Moses Receives Three Signs",
+      "caption": "Moses tells God that the Israelites will not believe him. God then shows Moses three signs: his staff turning into a serpent and back, his hand becoming leprous and then healing, and river water turning into blood. These signs are meant to convince the people.",
+      "visualPrompt": "A man (Moses) in desert attire, standing before a bright light source off-screen in a rocky, arid landscape. He holds a shepherd's staff, which is mid-transformation into a serpent, or his hand is being withdrawn from his cloak, showing a leprous patch. The mood is one of awe and fear.",
+      "id": "s1"
+    },
+    {
+      "from": 10,
+      "to": 17,
+      "title": "Moses's Reluctance and Aaron",
+      "caption": "Moses says he is not a good speaker. God responds by asking who made mouths, and then tells Moses that his brother Aaron will meet him. Aaron will speak to the people for Moses, and Moses will tell Aaron what to say.",
+      "visualPrompt": "A man (Moses) in desert attire, looking downcast or hesitant, perhaps gesturing to his mouth. The setting is the same rocky, arid landscape. The mood is one of hesitation and divine instruction. A shepherd's staff is visible nearby.",
+      "id": "s2"
+    },
+    {
+      "from": 18,
+      "to": 23,
+      "title": "Journey to Egypt, Warning for Pharaoh",
+      "caption": "God tells Moses to return to Egypt because those who wanted to kill him are dead. Moses takes his wife and sons on a donkey and begins the journey. God tells Moses to perform wonders before Pharaoh and warns that Pharaoh's heart will be hardened, leading to the death of Pharaoh's firstborn.",
+      "visualPrompt": "Moses, his wife Zipporah, and two young sons riding on a donkey, traveling through a desert landscape towards the horizon. Moses holds a shepherd's staff. The mood is determined but also foreboding.",
+      "id": "s3"
+    },
+    {
+      "from": 24,
+      "to": 26,
+      "title": "Zipporah's Urgent Circumcision",
+      "caption": "While on the journey, at an inn, God encounters Moses and seeks to kill him. Moses's wife, Zipporah, quickly circumcises her son with a sharp stone and touches Moses's feet with the foreskin. She says, 'A bloody spouse art thou to me,' and God then leaves Moses alone.",
+      "visualPrompt": "Inside a simple, rustic inn or tent at night. Zipporah, a woman in ancient Midianite dress, is kneeling over a child, holding a sharp stone. Moses is lying nearby, looking ill or distressed. The mood is tense and urgent.",
+      "id": "s4"
+    },
+    {
+      "from": 27,
+      "to": 31,
+      "title": "Aaron Meets Moses, People Believe",
+      "caption": "God tells Aaron to meet Moses in the desert. They meet and kiss, and Moses tells Aaron all that God commanded. Moses and Aaron then gather the elders of Israel, and Aaron speaks to them and performs the signs. The people believe and bow down.",
+      "visualPrompt": "Two men, Moses and Aaron, embracing in a desert landscape. Later, a group of elders (men with beards, dressed in ancient Israelite attire) are gathered, watching Aaron perform a sign, perhaps holding a staff that has just transformed into a serpent or showing his hand. The mood is one of reunion, revelation, and growing hope.",
+      "id": "s5"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T12:56:51.835Z"
+}

@@ -2,6 +2,7 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
+import { scripturePatchPlugin } from './scripts/scripturePatchPlugin';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -12,6 +13,8 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       react(),
+      // Dev only: writes repaired verses back into public/data so the dataset stays consistent
+      scripturePatchPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         devOptions: {
@@ -41,6 +44,9 @@ export default defineConfig(({ mode }) => {
         workbox: {
           // ONLY cache app shell files via globPatterns — NEVER include /data/
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          // Scripture, quizzes, context and scene pictures live under /data and
+          // are cached at runtime (CacheFirst below), never precached
+          globIgnores: ['**/data/**'],
 
           // Pre-cache canon manifests on install (per locked decision: "Canon manifests pre-cached on install")
           additionalManifestEntries: [

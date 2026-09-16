@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, X, Users, Lock, Coffee } from 'lucide-react';
+import { Heart, X, Lock } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -19,7 +19,7 @@ export const UrgentDonationModal: React.FC<Props> = ({ onClose, onDonate }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Support ScriptureComix">
       <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-sm animate-fade-in" onClick={onClose}></div>
       <div className="relative bg-amber-50 w-full max-w-lg rounded-xl shadow-2xl overflow-hidden animate-slide-up border-t-8 border-yellow-500 font-sans">
         
@@ -33,12 +33,7 @@ export const UrgentDonationModal: React.FC<Props> = ({ onClose, onDonate }) => {
             <div className="bg-yellow-200 p-2 rounded-full text-yellow-800">
               <Heart size={24} fill="currentColor" />
             </div>
-            <h2 className="font-serif text-2xl font-bold text-slate-900 italic">An urgent message...</h2>
-          </div>
-
-          {/* Social Proof Badge */}
-          <div className="flex items-center gap-2 text-xs font-bold text-green-700 bg-green-100 px-3 py-1 rounded-full w-fit mb-4">
-            <Users size={12} /> 672 readers supported this week
+            <h2 className="font-serif text-2xl font-bold text-slate-900 italic">A word from the people who make this</h2>
           </div>
 
           {/* Core Copy */}
@@ -53,13 +48,6 @@ export const UrgentDonationModal: React.FC<Props> = ({ onClose, onDonate }) => {
               If you enjoy ScriptureComix, will you help us keep it alive? <span className="underline decoration-yellow-500 decoration-2">Even $1 makes a difference.</span>
             </p>
             
-            {/* Psychological Trigger Box */}
-            <div className="bg-white border-l-4 border-red-500 p-3 my-4 shadow-sm text-sm">
-              <p className="italic text-slate-600 mb-0">
-                ⚠️ <span className="font-bold text-red-600">Most people close this message.</span> If you donate today, you’ll be one of the few supporting millions of future readers.
-              </p>
-            </div>
-
             <p className="text-sm">
               Without community support, we may eventually have to limit features. Your support helps keep the Word accessible to everyone.
             </p>
@@ -97,11 +85,13 @@ export const UrgentDonationModal: React.FC<Props> = ({ onClose, onDonate }) => {
                 <span className="text-lg">$12</span>
                 <span className="text-[10px] uppercase font-normal text-slate-500">AI Supporter</span>
               </button>
-               <input 
-                type="number" 
-                placeholder="Custom"
+               <input
+                type="text"
+                inputMode="decimal"
+                placeholder="Other"
+                aria-label="Other amount in dollars"
                 value={customAmount}
-                onChange={(e) => setCustomAmount(e.target.value)}
+                onChange={(e) => setCustomAmount(e.target.value.replace(/[^0-9.]/g, ''))}
                 className="p-2 border-2 border-gray-200 rounded text-center focus:outline-none focus:border-yellow-500 font-bold bg-slate-50"
               />
             </div>
@@ -122,7 +112,7 @@ export const UrgentDonationModal: React.FC<Props> = ({ onClose, onDonate }) => {
         
         <div className="bg-amber-100/50 p-3 text-center border-t border-amber-200">
             <button onClick={onClose} className="text-amber-800/60 text-sm font-medium hover:text-amber-800 underline decoration-amber-300 decoration-dotted">
-                No thanks, I'll risk it
+                Not now
             </button>
         </div>
       </div>

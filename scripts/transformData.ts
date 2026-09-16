@@ -861,18 +861,20 @@ function generateEthiopianManifest(
     }
   }
 
-  // Additional Books (Enoch + Jubilees stubs)
+  // Additional Books (Enoch + Jubilees stubs). Chapter counts are real
+  // (Charles 1912/1913); a verse count of 0 means "unknown" — the app fills
+  // such chapters whole (borrow or AI) and learns the count on first read.
   books.push({
     slug: '1-enoch',
     displayName: '1 Enoch',
     section: 'Additional Books',
-    chapters: [1],
+    chapters: Array(108).fill(0),
   });
   books.push({
     slug: 'jubilees',
     displayName: 'Jubilees',
     section: 'Additional Books',
-    chapters: [1],
+    chapters: Array(50).fill(0),
   });
 
   const manifest: CanonManifest = {

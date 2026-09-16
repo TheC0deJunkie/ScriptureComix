@@ -1,0 +1,144 @@
+{
+  "summary": "The chapter declares that all wisdom originates from the Lord God, existing eternally with him and created before all things, yet remaining beyond full human comprehension (vv. 1-7). God, the Almighty Creator, is described as having poured out wisdom upon all his works and especially on those who love him (vv. 8-10). The text repeatedly identifies the \"fear of the Lord\" as the beginning and fullness of wisdom, stating it brings honor, joy, long life, and blessings (vv. 11-25). It concludes by advising the reader to seek wisdom through justice, faith, and meekness, while warning against hypocrisy and a double heart, as sinners find wisdom an abomination (vv. 26-40).",
+  "setting": "The book of Sirach, also known as Ecclesiasticus, was written in Jerusalem around 180 BCE by Jesus ben Sira. Most historians think it reflects a period when Hellenistic (Greek) culture was significantly influencing Jewish society. The author aimed to preserve traditional Jewish wisdom in this changing cultural environment.",
+  "events": [
+    {
+      "ref": "vv. 1-4",
+      "what": "The text declares that all wisdom comes from God, existed with him eternally, and was created before all things."
+    },
+    {
+      "ref": "vv. 5-7",
+      "what": "It states that God's word is the source of wisdom, and no one can fully comprehend its depth or ways."
+    },
+    {
+      "ref": "vv. 8-10",
+      "what": "The Creator, God Almighty, is described as having created, measured, and poured out wisdom upon all his works and those who love him."
+    },
+    {
+      "ref": "vv. 11-13",
+      "what": "The text introduces \"the fear of the Lord\" as bringing honor, glory, joy, and length of days, leading to blessings in the end."
+    },
+    {
+      "ref": "vv. 14-17",
+      "what": "It connects the love of God with honorable wisdom and states that the fear of the Lord is the beginning of wisdom, created with the faithful and known with the just."
+    },
+    {
+      "ref": "vv. 18-23",
+      "what": "The text reiterates that religiousness and fearing the Lord lead to joy, blessings, and the fullness of wisdom, which are gifts from God."
+    },
+    {
+      "ref": "vv. 24-25",
+      "what": "It explains that wisdom distributes knowledge and exalts those who hold her, with the fear of the Lord being its root, leading to long life."
+    },
+    {
+      "ref": "vv. 26-28",
+      "what": "The text contrasts the benefits of wisdom with the state of sinners, for whom wisdom is an abomination and who cannot be justified without fear, leading to ruin."
+    },
+    {
+      "ref": "vv. 29-35",
+      "what": "It advises patience and good understanding, and states that to gain wisdom, one must keep justice; God will give it, as the fear of the Lord is wisdom and discipline, agreeable to God are faith and meekness."
+    },
+    {
+      "ref": "vv. 36-40",
+      "what": "The chapter concludes with a warning against incredulity, a double heart, and hypocrisy, stating that God will expose secrets and cast down deceitful individuals."
+    }
+  ],
+  "people": [
+    {
+      "name": "Lord God",
+      "role": "The source of all wisdom, the Creator, and the one who pours out wisdom upon his works (vv. 1, 8-10)."
+    },
+    {
+      "name": "Them that love him",
+      "role": "Those to whom God has given wisdom (v. 10)."
+    },
+    {
+      "name": "Him that feareth the Lord",
+      "role": "One who experiences honor, joy, blessings, and the fullness of wisdom (vv. 11-13, 19, 22)."
+    },
+    {
+      "name": "The faithful",
+      "role": "Those with whom the fear of the Lord was created (v. 16)."
+    },
+    {
+      "name": "Chosen women",
+      "role": "Those with whom the fear of the Lord walks (v. 16)."
+    },
+    {
+      "name": "The just",
+      "role": "Those with whom the fear of the Lord is known (v. 16)."
+    },
+    {
+      "name": "Sinners",
+      "role": "Those for whom wisdom is an abomination and who cannot be justified (vv. 26, 32)."
+    },
+    {
+      "name": "Son",
+      "role": "The addressee, advised to desire wisdom and keep justice (v. 33)."
+    },
+    {
+      "name": "Hypocrite",
+      "role": "One who acts deceptively in the sight of men (v. 37)."
+    }
+  ],
+  "terms": [
+    {
+      "term": "Wisdom",
+      "meaning": "Described as originating from God, existing before creation, and being the source of understanding and knowledge (vv. 1-5, 24)."
+    },
+    {
+      "term": "Fear of the Lord",
+      "meaning": "Presented as the beginning and fullness of wisdom, leading to honor, joy, long life, and justification (vv. 11-13, 16-17, 20, 25). It implies reverence and obedience to God."
+    },
+    {
+      "term": "Religiousness of knowledge",
+      "meaning": "A state of knowing God that is associated with the fear of the Lord, leading to a justified heart, joy, and gladness (vv. 17-18)."
+    },
+    {
+      "term": "Discipline",
+      "meaning": "Refers to instruction, training, or moral guidance that leads to wisdom (vv. 7, 31, 34)."
+    },
+    {
+      "term": "Double heart",
+      "meaning": "Refers to being insincere or having conflicting intentions, especially in one's approach to God (v. 36)."
+    },
+    {
+      "term": "Abomination",
+      "meaning": "Something regarded with intense dislike or disgust, particularly in a religious or moral sense (vv. 26, 32)."
+    }
+  ],
+  "readings": [
+    {
+      "tradition": "Jewish Tradition",
+      "view": "Often views Sirach as a significant work of wisdom literature, though it is not part of the Hebrew Bible canon. It is read for its ethical teachings and insights into the nature of wisdom and reverence for God."
+    },
+    {
+      "tradition": "Catholic and Orthodox Traditions",
+      "view": "Include Sirach (Ecclesiasticus) in their biblical canons as a deuterocanonical book. They read this chapter as an inspired teaching on the divine origin of wisdom and the importance of the fear of the Lord as a foundation for a righteous life."
+    },
+    {
+      "tradition": "Protestant Tradition",
+      "view": "Generally regards Sirach as an apocryphal book, useful for instruction but not canonical scripture. They may read this chapter for its moral and ethical wisdom, particularly its emphasis on God as the source of wisdom and the value of reverence."
+    },
+    {
+      "tradition": "Historical-Critical Scholarship",
+      "view": "Views Sirach 1 as an example of sapiential (wisdom) literature from the Second Temple period. Scholars analyze its literary structure, theological concepts (like personified wisdom), and its historical context within early Judaism, noting its connections to other wisdom texts like Proverbs."
+    }
+  ],
+  "oftenQuoted": [
+    {
+      "ref": "v. 1: \"All wisdom is from the Lord God, and hath been always with him, and is before all time.\"",
+      "caution": "This verse is often quoted to emphasize the divine origin and eternal nature of wisdom. The surrounding text continues to describe wisdom's incomprehensibility and its creation by God before all things (vv. 2-4)."
+    },
+    {
+      "ref": "v. 16: \"The fear of the Lord is the beginning of wisdom...\"",
+      "caution": "This phrase is widely quoted to highlight the foundational importance of reverence for God in acquiring wisdom. The surrounding text elaborates on the benefits of fearing the Lord, including honor, joy, long life, and religiousness, and describes it as being created with the faithful (vv. 11-19)."
+    },
+    {
+      "ref": "v. 33: \"Son, if thou desire wisdom, keep justice, and God will give her to thee.\"",
+      "caution": "This verse is often cited as a direct instruction on how to obtain wisdom. The surrounding text explains that the fear of the Lord is wisdom and discipline, and that faith and meekness are agreeable to God, while warning against a double heart and hypocrisy (vv. 34-40)."
+    }
+  ],
+  "generatedAt": "2026-09-15T21:19:44.492Z",
+  "model": "gemini-2.5-flash"
+}

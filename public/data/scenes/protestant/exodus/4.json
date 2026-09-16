@@ -1,0 +1,46 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 9,
+      "title": "Three Signs of Authority",
+      "caption": "Moses tells God that the Israelites will not believe him (v. 1). God asks Moses about his staff, which then turns into a snake and back into a staff (v. 2-5). God then instructs Moses to put his hand into his cloak, and it becomes diseased, then healthy again (v. 6-7). God says these signs are for the people to believe (v. 5, 8). God also describes a third sign involving water turning to blood (v. 9).",
+      "visualPrompt": "A man in simple desert clothing, Moses, stands on rocky, sparse terrain. His face shows concern. He holds a shepherd's staff. In the foreground, a snake is coiled on the ground, and Moses is recoiling slightly. His other hand is emerging from his cloak, showing a clear, healthy hand. The sun is setting, casting long shadows.",
+      "id": "s1"
+    },
+    {
+      "from": 10,
+      "to": 17,
+      "title": "Aaron to Speak",
+      "caption": "Moses tells God he is not a good speaker (v. 10). God responds by saying he controls who can speak (v. 11-12). Moses asks God to send someone else (v. 13). God becomes angry and says Moses's brother Aaron, who is a good speaker, will meet him (v. 14). God says Moses will tell Aaron what to say, and Aaron will speak for Moses to the people (v. 15-16). God also tells Moses to take the staff to perform signs (v. 17).",
+      "visualPrompt": "A man, Moses, sits on a rock in a desert setting, looking downcast. He is holding a shepherd's staff. The sun is high, casting harsh light. The overall mood is one of contemplation and reluctance. No other figures are present.",
+      "id": "s2"
+    },
+    {
+      "from": 18,
+      "to": 23,
+      "title": "Return to Egypt",
+      "caption": "Moses asks his father-in-law Jethro for permission to return to Egypt, and Jethro agrees (v. 18). God tells Moses to go back to Egypt because those who sought his life are dead (v. 19). Moses takes his wife and sons on a donkey and begins the journey to Egypt, carrying the staff (v. 20). God instructs Moses to perform wonders before Pharaoh and warns that Pharaoh's heart will be hardened (v. 21). God also tells Moses to tell Pharaoh that Israel is God's firstborn son, and if Pharaoh refuses to let Israel go, God will kill Pharaoh's firstborn son (v. 22-23).",
+      "visualPrompt": "A small family group travels through a desert landscape. Moses walks beside a donkey carrying a woman, Zipporah, and two young boys. Moses holds a simple wooden staff. The sun is rising, casting warm light on their backs as they head towards the horizon.",
+      "id": "s3"
+    },
+    {
+      "from": 24,
+      "to": 26,
+      "title": "The Inn Incident",
+      "caption": "While traveling, at an inn, God meets Moses and seeks to kill him (v. 24). Moses's wife, Zipporah, takes a sharp stone and cuts off her son's foreskin (v. 25). She then touches it to Moses's feet and says, 'Surely a bloody husband art thou to me' (v. 25). After this, God lets Moses go (v. 26). Zipporah repeats the phrase, explaining it is because of the circumcision (v. 26).",
+      "visualPrompt": "Inside a dimly lit, simple desert inn room. A woman, Zipporah, kneels beside a child lying on a mat. She holds a sharp stone. A man, Moses, lies nearby, looking distressed. The mood is tense and urgent.",
+      "id": "s4"
+    },
+    {
+      "from": 27,
+      "to": 31,
+      "title": "Meeting the Elders",
+      "caption": "God tells Aaron to go into the wilderness to meet Moses (v. 27). Aaron meets Moses at a mountain and they embrace (v. 27). Moses tells Aaron everything God commanded him, including the signs (v. 28). Moses and Aaron then gather the elders of Israel (v. 29). Aaron speaks all the words God gave to Moses and performs the signs for the people (v. 30). The people believe and bow down in worship when they hear that God has visited them and seen their suffering (v. 31).",
+      "visualPrompt": "A gathering of people in a desert encampment. Moses and Aaron stand before a group of older men, the elders, who are listening intently. Aaron gestures with his hands as if speaking, and Moses stands beside him, holding the staff. The people in the background are looking on with expressions of hope and belief. The sun is bright, indicating daytime.",
+      "id": "s5"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T08:22:52.049Z"
+}

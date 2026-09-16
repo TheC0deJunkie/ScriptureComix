@@ -1,0 +1,54 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 5,
+      "title": "Creation of Light",
+      "caption": "In the beginning, God created the heavens and the earth. The earth was formless and dark, with water covering everything. God spoke, and light appeared, which God separated from the darkness, calling them Day and Night. This was the first day.",
+      "visualPrompt": "A vast, dark, watery expanse. A bright, glowing light source appears in the distance, illuminating part of the water. The horizon shows a clear division between bright and dark areas.",
+      "id": "s1"
+    },
+    {
+      "from": 6,
+      "to": 8,
+      "title": "The Sky Appears",
+      "caption": "God spoke, creating a firmament (expanse) to divide the waters. This firmament separated the waters below it from the waters above it. God called this firmament Heaven. This was the second day.",
+      "visualPrompt": "A clear, blue sky (firmament) stretching above a vast body of water. Clouds are visible above the firmament, suggesting water above, while the water below reflects the new sky.",
+      "id": "s2"
+    },
+    {
+      "from": 9,
+      "to": 13,
+      "title": "Land and Vegetation",
+      "caption": "God commanded the waters under the sky to gather, revealing dry land, which God called Earth. God then commanded the earth to produce plants: grass, seed-bearing herbs, and fruit trees. The earth produced these plants, each according to its kind. This was the third day.",
+      "visualPrompt": "A landscape with newly formed dry land emerging from receding waters. Green grass, various herbs, and trees laden with fruit are visible on the land. The sky is clear.",
+      "id": "s3"
+    },
+    {
+      "from": 14,
+      "to": 19,
+      "title": "Lights in the Sky",
+      "caption": "God spoke, creating lights in the sky to separate day from night and to mark seasons, days, and years. God made a greater light for the day and a lesser light for the night, and also the stars. These lights were placed in the sky to give light to the earth and to govern day and night. This was the fourth day.",
+      "visualPrompt": "A celestial scene. A large, bright sun dominates one side, casting light. On the other side, a moon and numerous stars are visible in a darker sky. The earth is visible below, partially illuminated.",
+      "id": "s4"
+    },
+    {
+      "from": 20,
+      "to": 23,
+      "title": "Life in Water and Air",
+      "caption": "God commanded the waters to produce living creatures and the sky to produce birds. God created large sea creatures and every living thing that moves in the water, as well as every winged bird, each according to its kind. God blessed them, telling them to be fruitful and multiply. This was the fifth day.",
+      "visualPrompt": "A vibrant ocean scene with various fish and large sea creatures swimming. Above the water, different kinds of birds are flying in the sky.",
+      "id": "s5"
+    },
+    {
+      "from": 24,
+      "to": 31,
+      "title": "Animals and Humankind",
+      "caption": "God commanded the earth to produce living creatures: cattle, creeping things, and wild animals, each according to its kind. God then created humankind, male and female, in God's own image. God blessed them, telling them to be fruitful, multiply, fill the earth, and have dominion over all living things. God also provided all seed-bearing plants and fruit trees for food for humans, and green herbs for all animals. God saw everything made, and it was very good. This was the sixth day.",
+      "visualPrompt": "A lush, green landscape populated by various land animals (cattle, wild beasts, small creeping creatures). In the foreground, a man and a woman stand together, looking out at the created world. They are dressed simply, reflecting early human existence.",
+      "id": "s6"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-15T21:25:29.735Z"
+}

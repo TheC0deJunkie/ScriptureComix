@@ -97,12 +97,24 @@ export interface JourneyProgress {
   lastUpdated: string;
 }
 
+/** A passage a reflection points at — tappable, so the circle can jump straight to it. */
+export interface PassagePointer {
+  tradition?: string;
+  book: string;
+  chapter: number;
+  verses: number[];   // [] means the whole chapter
+  label: string;      // "Exodus 4:1-10"
+}
+
 export interface ReflectionEntry {
   id: string;
   author: string;
   text: string;
   createdAt: string;
+  ref?: PassagePointer;
 }
+
+export type CircleStatus = 'active' | 'ended';
 
 export interface StudyGroup {
   id: string;
@@ -111,9 +123,66 @@ export interface StudyGroup {
   code: string;
   members: string[];
   createdAt: string;
+  /** Canon the shared chapter lives in (protestant when absent, for circles made before this field). */
+  tradition?: string;
   targetBook?: string;
   targetChapter?: number;
+  /** Verses the circle is focused on inside the chapter ([] or absent = whole chapter). */
+  targetVerses?: number[];
+  /** "Exodus 4:1-10" when verses are set. */
+  targetLabel?: string;
   reflections: ReflectionEntry[];
+
+  // --- Present only when the circle lives in Firestore (signed-in readers) ---
+  cloud?: boolean;
+  ownerUid?: string;
+  memberUids?: string[];
+  /** 'ended' locks the circle for everyone until the leader starts a new session. */
+  status?: CircleStatus;
+  currentSessionId?: string | null;
+  sessionCount?: number;
+  endedAt?: string;
+}
+
+/** One sitting of a circle: a start, a set of passages, reflections, and what was learnt. */
+export interface StudySession {
+  id: string;
+  number: number;
+  title: string;
+  status: 'open' | 'closed';
+  startedAt: string;
+  startedBy: string;
+  endedAt?: string;
+  endedBy?: string;
+  /** Every passage the circle focused on during the session, in order. */
+  passages: PassagePointer[];
+  summary: string;
+  takeaways: string[];
+  reflectionCount: number;
+}
+
+export interface CircleNote {
+  id: string;
+  authorUid: string;
+  author: string;
+  title: string;
+  body: string;
+  ref?: PassagePointer;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StudyPack {
+  id: string;
+  title: string;
+  description: string;
+  passages: PassagePointer[];
+  questions: string[];
+  notes: string;
+  createdByUid: string;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CustomHero {
@@ -158,9 +227,19 @@ export interface CachedChapter {
   updatedAt: string;
 }
 
+/** Where a verse's text came from. Anything but 'bundled' should be flagged to the reader. */
+export type VerseTextSource = 'bundled' | 'borrowed' | 'reconstructed';
+
 export interface ChapterVerse {
   verse: number;
   text: string;
+  source?: VerseTextSource;
+}
+
+export interface ChapterProvenance {
+  borrowed: number[];       // verse numbers filled from another public-domain translation
+  reconstructed: number[];  // verse numbers reproduced by AI — not from a printed edition
+  unresolved: number[];     // verse numbers still missing
 }
 
 export interface TextCatalogEntry {
@@ -178,9 +257,55 @@ export interface TextCatalogEntry {
   notes?: string;
 }
 
+/**
+ * Neutral, text-grounded study context for one chapter. Generated once,
+ * stored forever, shipped to everyone. Descriptive, never devotional.
+ */
+export interface ChapterContext {
+  summary: string;                                   // what happens, plainly
+  setting: string;                                   // when / where, hedged where uncertain
+  events: { ref: string; what: string }[];           // in order: what led to what
+  people: { name: string; role: string }[];
+  terms: { term: string; meaning: string }[];        // words or ideas a modern reader may miss
+  readings: { tradition: string; view: string }[];   // how traditions read it — described, not endorsed
+  oftenQuoted: { ref: string; caution: string }[];   // verses often quoted alone, and what surrounds them
+  generatedAt: string;
+  model?: string;
+}
+
+/**
+ * A scene is a run of verses that tells one beat of the story and gets ONE
+ * illustration (not one per verse). Plans and images are generated once and
+ * shipped with the app.
+ */
+export interface Scene {
+  id: string;            // "s1"
+  from: number;          // first verse
+  to: number;            // last verse
+  title: string;         // "In the beginning"
+  caption: string;       // what happens here, in plain neutral words
+  visualPrompt: string;  // the picture to draw (no text, respectful, tradition-aware)
+  image?: string;        // bundled path (/data/scenes/…png) or data: URL once generated
+  imageSource?: 'bundled' | 'generated';
+}
+
+export interface ScenePlan {
+  scenes: Scene[];
+  style: string;         // art style the bundled images were drawn in
+  generatedAt: string;
+}
+
 export interface ChapterTextResult {
   entry: TextCatalogEntry;
   verses: ChapterVerse[];
+  tradition?: string;
+  translationId?: string;
+  bookSlug?: string;
+  bookDisplayName?: string;
+  chapter?: number;
+  provenance?: ChapterProvenance;
+  /** Set when gaps are being repaired in the background; resolves to the completed chapter. */
+  pending?: Promise<ChapterTextResult | null>;
 }
 
 export type FaithTradition =
@@ -220,8 +345,8 @@ export enum BibleVersion {
   LDS_STANDARD = 'LDS Standard Works'
 }
 
-export const FREE_VERSIONS = [BibleVersion.NIV, BibleVersion.KJV, BibleVersion.MSG];
-export const EXPLORER_VERSIONS = [...FREE_VERSIONS, BibleVersion.ESV, BibleVersion.NLT, BibleVersion.NKJV, BibleVersion.NASB, BibleVersion.RSV];
+export const FREE_VERSIONS = [BibleVersion.NLT, BibleVersion.NIV, BibleVersion.KJV, BibleVersion.MSG];
+export const EXPLORER_VERSIONS = [...FREE_VERSIONS, BibleVersion.ESV, BibleVersion.NKJV, BibleVersion.NASB, BibleVersion.RSV];
 
 export const SUPPORTED_LANGUAGES = [
   "English", "Spanish", "French", "Portuguese", "German", 

@@ -1,0 +1,139 @@
+{
+  "summary": "Tobit, a man from the tribe of Naphtali, is taken captive to Nineveh by the Assyrian king Salmanasar. Despite his exile, he remains faithful to God's laws, avoiding idolatry and observing religious duties. He also performs acts of charity, helping his fellow captives and burying the dead. After Salmanasar's death, his son Sennacherib persecutes the Israelites, and Tobit's continued practice of burying the dead leads to the king ordering his execution, forcing Tobit to flee. However, Sennacherib is soon killed, and Tobit is able to return home and regain his property.",
+  "setting": "The story begins with Tobit's captivity during the reign of Salmanasar (Shalmaneser V) of Assyria (v. 2), which places the initial events in the late 8th century BCE. The narrative unfolds primarily in the Assyrian capital city of Nineveh (v. 11), with mentions of Jerusalem (v. 6) and Rages in Media (v. 16). The broader historical context is the Assyrian conquest and exile of the northern kingdom of Israel.",
+  "events": [
+    {
+      "ref": "v. 2",
+      "what": "Tobit is taken captive by Salmanasar, king of the Assyrians."
+    },
+    {
+      "ref": "vv. 3-8",
+      "what": "Despite his captivity, Tobit remains faithful to God's law, giving to fellow captives, avoiding golden calves, and traveling to Jerusalem to offer firstfruits and tithes."
+    },
+    {
+      "ref": "vv. 9-10",
+      "what": "Tobit marries Anna, has a son named Tobias, and teaches him to fear God."
+    },
+    {
+      "ref": "vv. 11-14",
+      "what": "In Nineveh, Tobit avoids eating Gentile foods and gains favor with King Salmanasar, who grants him freedom to travel and act as he wishes."
+    },
+    {
+      "ref": "vv. 16-17",
+      "what": "Tobit travels to Rages in Media and lends ten talents of silver to his kinsman Gabelus."
+    },
+    {
+      "ref": "v. 18",
+      "what": "After Salmanasar dies, his son Sennacherib becomes king and develops a hatred for the Israelites."
+    },
+    {
+      "ref": "vv. 19-20",
+      "what": "Tobit continues to help his kindred, distributing goods, feeding the hungry, clothing the naked, and burying the dead."
+    },
+    {
+      "ref": "v. 21",
+      "what": "When King Sennacherib returns from Judea and slays many Israelites, Tobit buries their bodies."
+    },
+    {
+      "ref": "vv. 22-23",
+      "what": "The king learns of Tobit's actions, orders his death, and seizes his property, forcing Tobit to flee and hide with his family."
+    },
+    {
+      "ref": "vv. 24-25",
+      "what": "Forty-five days later, Sennacherib is killed by his own sons, allowing Tobit to return home and have his property restored."
+    }
+  ],
+  "people": [
+    {
+      "name": "Tobias (Tobit)",
+      "role": "The main character, an Israelite from the tribe of Naphtali, who remains faithful to God and performs acts of charity while in captivity."
+    },
+    {
+      "name": "Salmanasar",
+      "role": "King of the Assyrians who takes Tobit captive and later grants him favor."
+    },
+    {
+      "name": "Jeroboam",
+      "role": "An earlier king of Israel who made golden calves for worship."
+    },
+    {
+      "name": "Anna",
+      "role": "Tobit's wife and the mother of his son."
+    },
+    {
+      "name": "Tobias (son)",
+      "role": "Tobit's son, whom he teaches to fear God."
+    },
+    {
+      "name": "Gabelus",
+      "role": "A kinsman of Tobit from whom Tobit lends money."
+    },
+    {
+      "name": "Sennacherib",
+      "role": "Salmanasar's son and successor, who persecutes Israelites and orders Tobit's death."
+    },
+    {
+      "name": "Children of Israel/kinsmen",
+      "role": "Fellow captives and members of Tobit's tribe whom he helps and comforts."
+    },
+    {
+      "name": "Proselytes and strangers",
+      "role": "Recipients of Tobit's tithes."
+    }
+  ],
+  "terms": [
+    {
+      "term": "Nephtali (Naphtali)",
+      "meaning": "One of the twelve tribes of Israel, from which Tobit originates (v. 1)."
+    },
+    {
+      "term": "Salmanasar (Shalmaneser V)",
+      "meaning": "An Assyrian king who conquered parts of Israel and took Tobit captive (v. 2)."
+    },
+    {
+      "term": "Golden calves",
+      "meaning": "Idols made by King Jeroboam for worship in the northern kingdom of Israel, which Tobit avoided (v. 5)."
+    },
+    {
+      "term": "Firstfruits",
+      "meaning": "The first and best portion of a harvest, traditionally offered to God (v. 6)."
+    },
+    {
+      "term": "Tithes",
+      "meaning": "A tenth part of one's income or produce, set aside for religious purposes or charity (v. 6)."
+    },
+    {
+      "term": "Proselytes",
+      "meaning": "Individuals who have converted to a religion, in this case, to the worship of the God of Israel (v. 7)."
+    },
+    {
+      "term": "Ninive (Nineveh)",
+      "meaning": "The capital city of the Assyrian Empire, where Tobit and his family were taken captive (v. 11)."
+    },
+    {
+      "term": "Sennacherib",
+      "meaning": "An Assyrian king, son of Salmanasar, known for his military campaigns and persecution of Israelites (v. 18)."
+    }
+  ],
+  "readings": [
+    {
+      "tradition": "Catholic and Orthodox traditions",
+      "view": "These traditions include Tobit in their biblical canon and read this chapter as an inspired account of a righteous man's faithfulness and charity amidst exile and persecution. It establishes Tobit's character as a model of piety and sets the stage for God's eventual intervention in his life."
+    },
+    {
+      "tradition": "Protestant tradition",
+      "view": "Protestant traditions generally classify Tobit as part of the Apocrypha, considering it useful for moral instruction but not canonical scripture. They might appreciate the chapter's portrayal of Tobit's faithfulness and good deeds as an example of piety, without drawing doctrinal conclusions from it."
+    },
+    {
+      "tradition": "Historical-critical scholarship",
+      "view": "This approach often examines the text for its historical and literary features. Scholars note that while the story is set in a historical period, it contains anachronisms and historical inaccuracies (e.g., regarding the reigns of Assyrian kings and the timing of the exile), suggesting it is a work of historical fiction or a didactic narrative rather than a precise historical record."
+    },
+    {
+      "tradition": "Jewish tradition",
+      "view": "While not included in the Hebrew Bible canon, the book of Tobit was known and circulated among Jewish communities in antiquity. Some Jewish scholars might read it as a moral tale or a reflection on diaspora life, emphasizing themes of faithfulness to the Law, charity, and divine providence, without considering it canonical scripture."
+    }
+  ],
+  "oftenQuoted": [],
+  "generatedAt": "2026-09-15T21:19:30.726Z",
+  "model": "gemini-2.5-flash"
+}

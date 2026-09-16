@@ -1,0 +1,70 @@
+{
+  "scenes": [
+    {
+      "from": 1,
+      "to": 3,
+      "title": "Creation's End and Rest",
+      "caption": "The heavens and earth, and all their inhabitants, are finished. On the seventh day, God completes his work and rests. This day is blessed and set apart.",
+      "visualPrompt": "A serene landscape at dawn, showing a vast, complete world with mountains, rivers, forests, and various animals. No human figures are present. The mood is peaceful and complete.",
+      "id": "s1"
+    },
+    {
+      "from": 4,
+      "to": 6,
+      "title": "Earth Before Man",
+      "caption": "This section describes the creation of the heavens and earth. Before plants grew, there was no rain, and no human to work the ground. A mist rose from the earth to water the land.",
+      "visualPrompt": "A barren, uncultivated landscape under a soft, diffused light. Dry earth stretches towards a horizon, with a gentle mist rising from the ground. No plants or animals are visible.",
+      "id": "s2"
+    },
+    {
+      "from": 7,
+      "to": 9,
+      "title": "Man and the Garden",
+      "caption": "The Lord God forms man from the dust of the ground and gives him life. He then plants a garden in Eden, to the east, and places the man there. In the garden grow beautiful and edible trees, including the tree of life and the tree of knowledge of good and evil.",
+      "visualPrompt": "A young man, newly formed, stands in a lush, vibrant garden filled with various fruit trees. Two distinct, prominent trees (representing the tree of life and the tree of knowledge) are visible in the center. The man looks around with a sense of wonder.",
+      "id": "s3"
+    },
+    {
+      "from": 10,
+      "to": 14,
+      "title": "Rivers of Eden",
+      "caption": "A river flows from Eden to water the garden, then divides into four main rivers. These rivers are named Pison, Gihon, Hiddekel (Tigris), and Euphrates. The passage describes the lands these rivers flow through, mentioning gold, bdellium, and onyx stone.",
+      "visualPrompt": "An overhead view of a lush garden with a central river. The river branches into four distinct, flowing rivers, extending into different geographical areas. Hints of gold nuggets and precious stones are visible in the riverbeds or along the banks.",
+      "id": "s4"
+    },
+    {
+      "from": 15,
+      "to": 17,
+      "title": "Man's Task and Command",
+      "caption": "The Lord God places the man in the Garden of Eden to cultivate and care for it. The man is permitted to eat from any tree in the garden, except for the tree of the knowledge of good and evil. Eating from this forbidden tree will result in death.",
+      "visualPrompt": "The man is tending to plants in the garden, perhaps pruning a bush or watering a small plant. In the background, the forbidden tree stands out with distinct fruit. The man appears focused on his task.",
+      "id": "s5"
+    },
+    {
+      "from": 18,
+      "to": 20,
+      "title": "Naming the Animals",
+      "caption": "The Lord God observes that it is not good for the man to be alone and plans to make a helper for him. He forms all the animals and birds from the ground and brings them to the man to be named. The man names all the creatures, but no suitable helper is found for him.",
+      "visualPrompt": "The man sits in a clearing, surrounded by various animals (lions, deer, birds, etc.). He is interacting with them, perhaps gesturing or looking at them intently, as if assigning names. He appears alone despite the animals.",
+      "id": "s6"
+    },
+    {
+      "from": 21,
+      "to": 23,
+      "title": "Woman's Creation",
+      "caption": "The Lord God causes the man to fall into a deep sleep. While he sleeps, God takes one of his ribs and closes the flesh. From this rib, God forms a woman and brings her to the man. The man recognizes her as 'bone of my bones, and flesh of my flesh,' and names her Woman.",
+      "visualPrompt": "The man is asleep on the ground under a tree in a soft, gentle light. Nearby, a woman stands, newly formed, looking towards the sleeping man with grace and serenity.",
+      "id": "s7"
+    },
+    {
+      "from": 24,
+      "to": 25,
+      "title": "Union and Innocence",
+      "caption": "The text states that a man will leave his parents and join with his wife, becoming one flesh. Both the man and his wife are naked and feel no shame.",
+      "visualPrompt": "The man and woman stand together in the garden, facing each other or looking out at the landscape. They are holding hands or standing close, conveying a sense of unity and peace. They are unclothed but appear natural and unselfconscious.",
+      "id": "s8"
+    }
+  ],
+  "style": "Modern American Comic",
+  "generatedAt": "2026-09-16T09:30:21.817Z"
+}

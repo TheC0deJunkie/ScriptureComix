@@ -1,0 +1,172 @@
+{
+  "summary": "Jesus returns to Capernaum and heals a paralytic, claiming authority to forgive sins, which causes conflict with scribes. He then calls Levi, a tax collector, to be a disciple and eats with tax collectors and 'sinners,' leading to criticism from scribes and Pharisees. Jesus explains why his disciples do not fast, using analogies of a wedding feast and new versus old materials. Finally, Jesus defends his disciples for plucking grain on the Sabbath, citing a historical example and declaring the 'Son of man' to be 'Lord of the sabbath'.",
+  "setting": "The events take place in and around Capernaum, a town by the Sea of Galilee (vv. 1, 13). The narrative describes Jesus's public ministry, where he teaches and performs actions that challenge the religious authorities of the time, such as the scribes and Pharisees (vv. 6-7, 16, 18, 24).",
+  "events": [
+    {
+      "ref": "vv. 1-2",
+      "what": "Jesus returns to Capernaum, and a large crowd gathers at the house where he is staying, preventing easy access."
+    },
+    {
+      "ref": "vv. 3-5",
+      "what": "Four men bring a paralytic to Jesus; unable to get through the crowd, they lower him through the roof, and Jesus tells the man his sins are forgiven."
+    },
+    {
+      "ref": "vv. 6-12",
+      "what": "Scribes question Jesus's authority to forgive sins, considering it blasphemy; Jesus perceives their thoughts, asks what is easier, and then tells the paralytic to walk, which he immediately does, amazing everyone."
+    },
+    {
+      "ref": "vv. 13-14",
+      "what": "Jesus goes to the seaside, teaches a crowd, and calls Levi, a tax collector, to follow him, which Levi does."
+    },
+    {
+      "ref": "vv. 15-17",
+      "what": "Jesus eats at Levi's house with many tax collectors and 'sinners,' leading scribes and Pharisees to question his disciples; Jesus responds that he came to call 'sinners' to repentance."
+    },
+    {
+      "ref": "vv. 18-22",
+      "what": "Disciples of John and Pharisees ask Jesus why his disciples do not fast; Jesus explains with analogies of a bridegroom and new cloth/wine, suggesting incompatibility with old practices."
+    },
+    {
+      "ref": "vv. 23-24",
+      "what": "As Jesus and his disciples walk through corn fields on the Sabbath, the disciples pluck grain, prompting the Pharisees to question this action as unlawful."
+    },
+    {
+      "ref": "vv. 25-28",
+      "what": "Jesus defends his disciples by recalling David eating showbread, which was unlawful for non-priests, and states that the Sabbath was made for man, concluding that the 'Son of man' is 'Lord of the sabbath'."
+    }
+  ],
+  "people": [
+    {
+      "name": "Jesus",
+      "role": "A teacher and healer who claims authority to forgive sins and interprets religious law."
+    },
+    {
+      "name": "Paralytic",
+      "role": "A sick man brought to Jesus for healing and forgiveness."
+    },
+    {
+      "name": "Four men",
+      "role": "Friends or companions who bring the paralytic to Jesus."
+    },
+    {
+      "name": "Scribes",
+      "role": "Experts in Jewish law and scripture, often responsible for copying and interpreting texts."
+    },
+    {
+      "name": "Multitude",
+      "role": "Large crowds who gather to hear Jesus teach and witness his actions."
+    },
+    {
+      "name": "Levi (son of Alphaeus)",
+      "role": "A tax collector called by Jesus to be a disciple."
+    },
+    {
+      "name": "Publicans",
+      "role": "Tax collectors who eat with Jesus and his disciples."
+    },
+    {
+      "name": "Sinners",
+      "role": "A group of people, including tax collectors, who associate with Jesus."
+    },
+    {
+      "name": "Pharisees",
+      "role": "A prominent Jewish religious group who question Jesus's actions regarding eating with 'sinners' and Sabbath observance."
+    },
+    {
+      "name": "Disciples of John",
+      "role": "Followers of John the Baptist who observe fasting."
+    },
+    {
+      "name": "Disciples of Jesus",
+      "role": "Followers of Jesus who do not fast and pluck grain on the Sabbath."
+    },
+    {
+      "name": "David",
+      "role": "An ancient king whose actions are cited by Jesus as a precedent."
+    },
+    {
+      "name": "Abiathar",
+      "role": "A high priest mentioned in Jesus's reference to David."
+    }
+  ],
+  "terms": [
+    {
+      "term": "Capernaum",
+      "meaning": "A town located by the Sea of Galilee, where Jesus often stayed and taught."
+    },
+    {
+      "term": "Palsy",
+      "meaning": "A condition causing paralysis or severe weakness, preventing movement."
+    },
+    {
+      "term": "Scribes",
+      "meaning": "Experts in Jewish law and scripture, often responsible for copying and interpreting texts."
+    },
+    {
+      "term": "Blasphemies",
+      "meaning": "Words or actions that insult or show contempt for God, or claim divine attributes."
+    },
+    {
+      "term": "Son of man",
+      "meaning": "A title Jesus uses for himself; its meaning is debated, but it often refers to a human figure with divine authority."
+    },
+    {
+      "term": "Publicans",
+      "meaning": "Tax collectors, often viewed negatively by the Jewish population because they worked for the Roman authorities and were perceived as corrupt."
+    },
+    {
+      "term": "Pharisees",
+      "meaning": "A prominent Jewish religious group known for their strict adherence to the Law and oral traditions."
+    },
+    {
+      "term": "Sabbath",
+      "meaning": "The seventh day of the week, observed as a day of rest and worship, during which certain activities were prohibited by Jewish law."
+    },
+    {
+      "term": "Shewbread",
+      "meaning": "Twelve loaves of bread placed on a table in the Tabernacle or Temple, renewed weekly, and reserved for priests to eat."
+    }
+  ],
+  "readings": [
+    {
+      "tradition": "Historical-Critical Scholarship",
+      "view": "This chapter is often read as depicting early conflicts between Jesus and Jewish religious authorities over issues of divine authority, social inclusion, and the interpretation of religious law, particularly regarding the Sabbath and purity."
+    },
+    {
+      "tradition": "Jewish Tradition (in dialogue with Christian texts)",
+      "view": "Some Jewish scholars might view the scribes' and Pharisees' questions as legitimate concerns about maintaining the sanctity of God's law and the proper observance of the Sabbath, rather than as outright opposition to Jesus."
+    },
+    {
+      "tradition": "Christian Tradition (general)",
+      "view": "Many Christian traditions see this chapter as demonstrating Jesus's divine authority to forgive sins and his mission to reach out to marginalized people, while also establishing a new understanding of religious practices like fasting and Sabbath observance."
+    },
+    {
+      "tradition": "Catholic Tradition",
+      "view": "Catholic readings often emphasize Jesus's authority to forgive sins as a foundation for the sacrament of reconciliation, and his interactions with 'sinners' as a model for the Church's mission to bring salvation to all."
+    },
+    {
+      "tradition": "Protestant Tradition",
+      "view": "Protestant readings often highlight Jesus's direct forgiveness of sins as an act of grace, his challenge to legalistic interpretations of the law, and the idea that religious practice should serve humanity rather than bind it."
+    }
+  ],
+  "oftenQuoted": [
+    {
+      "ref": "v. 17",
+      "caution": "This verse, 'They that are whole have no need of the physician, but they that are sick: I came not to call the righteous, but sinners to repentance,' is often quoted to emphasize Jesus's mission to those considered morally or spiritually unwell. In its context, Jesus is responding to criticism from scribes and Pharisees about why he eats with tax collectors and 'sinners' (vv. 15-16)."
+    },
+    {
+      "ref": "v. 22",
+      "caution": "The saying, 'new wine must be put into new bottles,' is often used to speak about the need for new approaches or structures for new ideas. In the passage, it is part of Jesus's explanation for why his disciples do not fast, suggesting that his teachings and practices are fundamentally different from older traditions (vv. 18-22)."
+    },
+    {
+      "ref": "v. 27",
+      "caution": "The statement, 'The sabbath was made for man, and not man for the sabbath,' is frequently quoted to argue for the purpose of religious laws serving human well-being. Within the chapter, Jesus uses it to defend his disciples' actions of plucking grain on the Sabbath against the Pharisees' accusations of unlawfulness (vv. 23-26)."
+    },
+    {
+      "ref": "v. 28",
+      "caution": "The declaration, 'Therefore the Son of man is Lord also of the sabbath,' is often cited to assert Jesus's supreme authority. In context, it is the conclusion to Jesus's argument regarding the Sabbath, following his defense of his disciples' actions and his statement about the Sabbath's purpose (vv. 23-27)."
+    }
+  ],
+  "generatedAt": "2026-09-16T08:22:57.337Z",
+  "model": "gemini-2.5-flash"
+}
