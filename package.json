@@ -12,6 +12,7 @@
   "dependencies": {
     "@google/genai": "^1.30.0",
     "firebase": "^12.19.0",
+    "firebase-admin": "^13.10.0",
     "lucide-react": "^0.555.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
@@ -20,6 +21,7 @@
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^22.14.0",
+    "@vercel/node": "^13.0.1",
     "@vitejs/plugin-react": "^5.0.0",
     "@vitest/ui": "^4.1.0",
     "fake-indexeddb": "^6.2.5",

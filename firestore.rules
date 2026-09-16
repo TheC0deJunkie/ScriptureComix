@@ -230,6 +230,32 @@ service cloud.firestore {
       }
     }
 
+    // -----------------------------------------------------------------------
+    // Payments (written only by the Yoco webhook through the Admin SDK)
+    // -----------------------------------------------------------------------
+
+    // What a reader has paid for: supporter pass, sponsored chapters.
+    match /entitlements/{uid} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
+    // Payment records. A reader may see their own; nobody writes from the client.
+    match /purchases/{reference} {
+      allow read: if signedIn() && resource.data.uid == uid();
+      allow write: if false;
+    }
+
+    // Who funded a chapter. Public: the credit is shown to every reader.
+    match /sponsorships/{key} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /checkoutIndex/{checkoutId} {
+      allow read, write: if false;
+    }
+
     // Everything else is closed.
     match /{document=**} {
       allow read, write: if false;

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Heart, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { GIFT_PRESETS, formatRand } from '../shared/products';
 
 interface Props {
-  onDonate: () => void;
+  /** Opens the support dialog, optionally with a gift amount (cents) preselected. */
+  onDonate: (amountCents?: number) => void;
 }
 
 export const DonationBanner: React.FC<Props> = ({ onDonate }) => {
@@ -10,6 +12,7 @@ export const DonationBanner: React.FC<Props> = ({ onDonate }) => {
   const [isVisible, setIsVisible] = useState(true);
 
   if (!isVisible) return null;
+  const [first, ...rest] = GIFT_PRESETS;
 
   return (
     <div className="bg-gradient-to-r from-orange-50 to-red-50 border-b border-red-200 shadow-sm print:hidden">
@@ -27,24 +30,26 @@ export const DonationBanner: React.FC<Props> = ({ onDonate }) => {
                   </h3>
                   <p className="text-slate-800 text-sm md:text-base leading-relaxed max-w-3xl">
                     ScriptureComix is free and has no ads. The pictures, study notes and quizzes cost real money to generate once, and readers cover that.
-                    <span className="font-bold block mt-2">If it has helped you read, even $1 keeps it going.</span>
+                    <span className="font-bold block mt-2">If it has helped you read, even {formatRand(first)} keeps it going.</span>
                   </p>
-                  
+
                   <div className="flex flex-wrap items-center gap-3 mt-4">
-                    <button onClick={onDonate} className="bg-red-600 text-white px-6 py-2 rounded-full font-bold shadow hover:bg-red-700 transition-transform active:scale-95 flex items-center gap-2">
-                      <Heart size={16} fill="white" /> Support with $1
+                    <button onClick={() => onDonate(first)} className="bg-red-600 text-white px-6 py-2 rounded-full font-bold shadow hover:bg-red-700 transition-transform active:scale-95 flex items-center gap-2">
+                      <Heart size={16} fill="white" /> Support with {formatRand(first)}
                     </button>
-                    <button onClick={onDonate} className="bg-white text-red-700 border border-red-200 px-4 py-2 rounded-full font-medium hover:bg-red-50 transition-colors">
-                      $3
-                    </button>
-                    <button onClick={onDonate} className="bg-white text-red-700 border border-red-200 px-4 py-2 rounded-full font-medium hover:bg-red-50 transition-colors">
-                      $5
+                    {rest.map((c) => (
+                      <button key={c} onClick={() => onDonate(c)} className="bg-white text-red-700 border border-red-200 px-4 py-2 rounded-full font-medium hover:bg-red-50 transition-colors">
+                        {formatRand(c)}
+                      </button>
+                    ))}
+                    <button onClick={() => onDonate()} className="text-xs font-bold text-red-800 underline underline-offset-2 hover:text-red-900">
+                      Sponsor this chapter
                     </button>
                     <span className="text-xs text-slate-500 italic ml-2">Reading is free either way.</span>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex flex-col gap-2">
                  <button onClick={() => setIsVisible(false)} className="text-slate-400 hover:text-slate-600 p-1" title="Dismiss">
                    <X size={20} />

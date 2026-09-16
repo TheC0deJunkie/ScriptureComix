@@ -9,8 +9,6 @@ import { generateComicScript, generatePanelImage, generateQuiz, explainText, gen
 import { ComicPanel } from './components/ComicPanel';
 import { Loader } from './components/Loader';
 import { DonationBanner } from './components/DonationBanner';
-import { MembershipModal } from './components/MembershipModal';
-import { UrgentDonationModal } from './components/UrgentDonationModal';
 import { MissionModal } from './components/MissionModal';
 import { FounderStoryModal } from './components/FounderStoryModal';
 import { CharacterLibrary } from './components/CharacterLibrary';
@@ -56,6 +54,10 @@ import { signOutUser, providerLabel, currentUser } from './services/authService'
 import { ensureUserDocument, loadUserData, saveUserProfile, saveUserStats, mergeStats } from './services/userStore';
 import * as circleStore from './services/circleStore';
 import type { CircleActor, CircleFocus } from './services/circleStore';
+import { SupportModal } from './components/SupportModal';
+import { readPaymentReturn, waitForSettlement } from './services/paymentsClient';
+import { subscribeEntitlement, subscribeSponsorship, isSupporter, type Entitlement, type Sponsorship } from './services/entitlementStore';
+import { sponsorshipKey, type ChapterRef } from './shared/products';
 
 const DEFAULT_STATS: UserStats = {
   streak: 0,
@@ -126,13 +128,21 @@ const UnlockPill: React.FC<{ compact?: boolean }> = ({ compact }) => (
 );
 
 /** What each locked feature says when it asks for an account. */
-const UNLOCK: Record<'study' | 'comic' | 'quiz' | 'ai' | 'cast' | 'circle', AuthReason> = {
+const UNLOCK: Record<'study' | 'comic' | 'quiz' | 'ai' | 'cast' | 'circle' | 'pay', AuthReason> = {
   study: { title: 'Unlock study tools', hint: 'Study mode is free with an account: verse-by-verse notes, context and highlights that follow you to every device.' },
   comic: { title: 'Unlock the comic', hint: 'The illustrated chapter is free with an account. Sign in and it opens right here.' },
   quiz: { title: 'Unlock quizzes', hint: 'Quizzes earn points and keep your streak. Sign in free and this quiz opens right away.' },
   ai: { title: 'Sign in to generate', hint: 'Generating a new comic costs real money, so it is tied to an account. Sign in free to continue.' },
   cast: { title: 'Unlock your cast', hint: 'Characters you invent are saved to your account so they can appear in every comic you generate.' },
   circle: { title: 'Sign in to read together', hint: 'Circles live online so reflections sync between members. Sign in free to start or join one.' },
+  pay: { title: 'Sign in to support', hint: 'Payments are tied to an account, so what you unlock follows you to every device.' },
+};
+
+/** "Thandi", "Thandi and Sipho", "Thandi, Sipho and 2 others" */
+const formatNames = (names: string[]): string => {
+  if (names.length <= 1) return names[0] ?? '';
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names[0]}, ${names[1]} and ${names.length - 2} other${names.length - 2 === 1 ? '' : 's'}`;
 };
 
 const FALLBACK_VERSION_PRIORITY: BibleVersion[] = [
@@ -349,7 +359,6 @@ const App: React.FC = () => {
     if (scrollTop) window.scrollTo({ top: 0, behavior: 'auto' });
   };
   const [showMembershipModal, setShowMembershipModal] = useState(false);
-  const [showUrgentModal, setShowUrgentModal] = useState(false);
   const [showMissionModal, setShowMissionModal] = useState(false);
   const [showFounderModal, setShowFounderModal] = useState(false);
   const [showCharacterLibrary, setShowCharacterLibrary] = useState(false);
@@ -773,7 +782,7 @@ const App: React.FC = () => {
             if (chapterLoads.current === 3 && !safeRead<string | null>('scriptureComix_hasSeenUrgentDonation', null)) {
               const s = safeRead<any>(STORAGE_KEYS.stats, {});
               if (!s.tier || s.tier === UserTier.FREE) {
-                setShowUrgentModal(true);
+                openSupport();
                 safeWrite('scriptureComix_hasSeenUrgentDonation', 'true');
               }
             }
@@ -828,109 +837,95 @@ const App: React.FC = () => {
     };
   }, [selectedBook, selectedBookSlug, selectedChapter, tradition, selectedTranslation, selectedScripture, scriptureData]);
 
-  // --- MONETIZATION HANDLERS ---
-  const handleDonation = (amount: number, isMonthly: boolean) => {
-    // In real app, trigger Stripe.
-    const newTier = (isMonthly && amount >= 5) ? UserTier.EXPLORER : UserTier.FREE;
-    if (amount >= 5) {
-       handleUpgrade(UserTier.EXPLORER);
-    } else {
-       toast({ title: 'Thank you for your support', description: 'You are helping keep this free for everyone.' });
-       setShowUrgentModal(false);
-    }
-  };
+  // --- ENTITLEMENTS -----------------------------------------------------------
+  // What the reader has paid for. Written only by the Yoco webhook (Admin SDK);
+  // the browser listens. The tier is derived from it, never from a button.
+  const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
+  useEffect(() => {
+    if (!authUser) { setEntitlement(null); return; }
+    return subscribeEntitlement(authUser.uid, setEntitlement);
+  }, [authUser]);
+  const supporter = Boolean(authUser) && isSupporter(entitlement);
+  useEffect(() => {
+    if (authLoading) return;
+    const tier = supporter ? UserTier.SCHOLAR : UserTier.FREE;
+    setStats(prev => {
+      if (prev.tier === tier) return prev;
+      const next = { ...prev, tier };
+      safeWrite(STORAGE_KEYS.stats, next);
+      return next;
+    });
+  }, [authLoading, supporter]);
 
-  const handleUpgrade = (tier: UserTier) => {
-    const newStats = { ...stats, tier };
-    setStats(newStats);
-    safeWrite(STORAGE_KEYS.stats, newStats);
-    setShowMembershipModal(false);
-    setShowUrgentModal(false);
-    toast({ title: `Welcome to the ${tier}`, description: 'Thank you for your support.' });
-  };
+  const [supportGift, setSupportGift] = useState<number | null>(null);
+  /** Opens the support dialog, optionally on the gift card with an amount (cents) preselected. */
+  const openSupport = (giftCents?: number) => { setSupportGift(giftCents ?? null); setShowMembershipModal(true); };
+
+  // The chapter on screen, as a sponsorship target, and who has sponsored it.
+  const chapterRef: ChapterRef | null = selectedBookSlug
+    ? { tradition, bookSlug: selectedBookSlug, bookName: selectedBook, chapter: tradition === 'quran' ? 1 : selectedChapter }
+    : null;
+  const [sponsorship, setSponsorship] = useState<Sponsorship | null>(null);
+  useEffect(() => {
+    if (!chapterRef) { setSponsorship(null); return; }
+    return subscribeSponsorship(sponsorshipKey(chapterRef), setSponsorship);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tradition, selectedBookSlug, selectedChapter]);
+
+  // Back from Yoco with ?pay=ok|cancel|fail&ref=… The webhook settles the
+  // purchase; this only reports. The entitlement listener updates the UI.
+  useEffect(() => {
+    const ret = readPaymentReturn();
+    if (!ret) return;
+    if (ret.outcome === 'cancel') { toast({ title: 'No charge was made', description: 'You can come back to this any time.' }); return; }
+    if (ret.outcome === 'fail') { toast({ title: 'The payment did not go through', description: 'Your card was not charged. Try again or use another card.' }); return; }
+    let cancelled = false;
+    toast({ title: 'Thank you', description: 'Confirming your payment with Yoco…' });
+    waitForSettlement(ret.reference).then(st => {
+      if (cancelled) return;
+      if (st.status === 'paid') {
+        toast({ title: 'Payment confirmed', description: st.sku === 'sponsor-chapter' ? 'Your name is on the chapter. Thank you for keeping this free.' : 'Thank you for keeping ScriptureComix free for everyone.' });
+      } else if (st.status === 'failed') {
+        toast({ title: 'Payment not confirmed', description: `Yoco reported a problem. If you were charged, write to us with reference ${ret.reference}.` });
+      } else {
+        toast({ title: 'Still confirming', description: 'Your payment is being confirmed and will show in your profile shortly.' });
+      }
+    });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const checkFeatureLock = (feature: 'art' | 'book' | 'version' | 'ai' | 'download' | 'language', value?: any): boolean => {
-    const tier = stats.tier;
+    // Reading is free: every book, translation and language, for everyone.
+    if (feature === 'book' || feature === 'version' || feature === 'language') return true;
 
-    // 1. BOOKS LOCKING
-    if (feature === 'book') {
-      // Free users can access standard canon AND specific free lost books
-      if (tier === UserTier.FREE) {
-         if (FREE_ALLOWED_BOOKS.includes(value)) return true;
-         setShowMembershipModal(true);
-         return false;
-      }
-      // Explorer and Scholar get EVERYTHING
-      return true;
-    }
-
-    // 2. TRANSLATIONS / VERSIONS
-    if (feature === 'version') {
-      if (tier === UserTier.FREE) {
-        if (FREE_VERSIONS.includes(value)) return true;
-        setShowMembershipModal(true);
-        return false;
-      }
-      if (tier === UserTier.EXPLORER) {
-        if (EXPLORER_VERSIONS.includes(value)) return true;
-        setShowMembershipModal(true);
-        return false;
-      }
-      return true; // Scholar gets all
-    }
-
-    // 3. ART STYLES
+    // The generated extras are what a Supporter pays for.
     if (feature === 'art') {
-      if (tier === UserTier.FREE) {
-         if (FREE_STYLES.includes(value)) return true;
-         setShowMembershipModal(true);
-         return false;
-      }
-      if (tier === UserTier.EXPLORER) {
-        if (EXPLORER_STYLES.includes(value)) return true;
-        setShowMembershipModal(true);
-        return false;
-      }
-      return true; // Scholar gets all
+      if (supporter || FREE_STYLES.includes(value)) return true;
+      openSupport();
+      return false;
     }
-
-    // 4. AI USAGE
-    if (feature === 'ai') {
-       const limit = TIER_LIMITS[tier]?.ai || 20;
-       if (stats.dailyAiUsage < limit) {
-         const newStats = { 
-           ...stats, 
-           dailyAiUsage: stats.dailyAiUsage + 1,
-           lastAiUsageDate: new Date().toISOString()
-         };
-         setStats(newStats);
-        safeWrite(STORAGE_KEYS.stats, newStats);
-         return true;
-       }
-       setShowMembershipModal(true);
-       return false;
-    }
-
-    // 5. DOWNLOAD PDF
     if (feature === 'download') {
-      if (tier === UserTier.SCHOLAR) return true;
-      setShowMembershipModal(true);
+      if (supporter) return true;
+      openSupport();
       return false;
     }
 
-    // 6. LANGUAGES
-    if (feature === 'language') {
-      if (tier === UserTier.SCHOLAR) return true;
-      // English and isiZulu are free: the isiZulu Bible is public domain.
-      if (value === 'English' || value === 'Zulu') return true;
-      // Maybe Explorer gets a few, but Scholar gets ALL. 
-      // For now, let's keep languages open for Explorer or just Scholar.
-      // Prompt says Scholar gets "ALL Languages".
-      if (tier === UserTier.EXPLORER) return true; // Let Explorer try langs for now to add value
-      if (tier === UserTier.FREE) {
-         setShowMembershipModal(true);
-         return false;
+    // AI usage: a daily allowance per tier (generation itself is off in production builds).
+    if (feature === 'ai') {
+      const limit = TIER_LIMITS[stats.tier]?.ai || 20;
+      if (stats.dailyAiUsage < limit) {
+        const newStats = {
+          ...stats,
+          dailyAiUsage: stats.dailyAiUsage + 1,
+          lastAiUsageDate: new Date().toISOString(),
+        };
+        setStats(newStats);
+        safeWrite(STORAGE_KEYS.stats, newStats);
+        return true;
       }
+      openSupport();
+      return false;
     }
 
     return true;
@@ -2056,11 +2051,19 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen pb-20 bg-yellow-50 font-sans">
 
-      {!isPaid && <DonationBanner onDonate={() => setShowUrgentModal(true)} />}
+      {!isPaid && <DonationBanner onDonate={(cents) => openSupport(cents)} />}
 
       {/* --- Self-contained overlays (Escape closes them) --- */}
-      {showUrgentModal && <EscapeLayer onClose={() => setShowUrgentModal(false)}><UrgentDonationModal onClose={() => setShowUrgentModal(false)} onDonate={handleDonation} /></EscapeLayer>}
-      {showMembershipModal && <EscapeLayer onClose={() => setShowMembershipModal(false)}><MembershipModal currentTier={stats.tier} onClose={() => setShowMembershipModal(false)} onUpgrade={handleUpgrade} /></EscapeLayer>}
+      <SupportModal
+        open={showMembershipModal}
+        onClose={() => setShowMembershipModal(false)}
+        chapter={chapterRef}
+        supporterUntil={entitlement?.supporterUntil ?? null}
+        displayName={profile.displayName}
+        initialGift={supportGift}
+        signedIn={Boolean(authUser)}
+        onNeedSignIn={() => { setShowMembershipModal(false); requireSignIn(UNLOCK.pay, () => setShowMembershipModal(true)); }}
+      />
       {showMissionModal && <EscapeLayer onClose={() => setShowMissionModal(false)}><MissionModal onClose={() => setShowMissionModal(false)} /></EscapeLayer>}
       <AuthModal
         open={showAuthModal}
@@ -2071,7 +2074,7 @@ const App: React.FC = () => {
           if (!currentUser()) { afterSignIn.current = null; setAuthReason(null); }
         }}
       />
-      {showFounderModal && <EscapeLayer onClose={() => setShowFounderModal(false)}><FounderStoryModal onClose={() => setShowFounderModal(false)} onDonate={() => { setShowFounderModal(false); setShowUrgentModal(true); }} /></EscapeLayer>}
+      {showFounderModal && <EscapeLayer onClose={() => setShowFounderModal(false)}><FounderStoryModal onClose={() => setShowFounderModal(false)} onDonate={() => { setShowFounderModal(false); openSupport(); }} /></EscapeLayer>}
       {showCharacterLibrary && <EscapeLayer onClose={() => setShowCharacterLibrary(false)}><CharacterLibrary onClose={() => setShowCharacterLibrary(false)} tier={stats.tier} onUpgrade={() => setShowMembershipModal(true)} currentBook={selectedBook} /></EscapeLayer>}
       {showOfflineManager && (
         <EscapeLayer onClose={() => setShowOfflineManager(false)}>
@@ -2238,10 +2241,8 @@ const App: React.FC = () => {
                   <Button type="submit" size="sm" variant="dark" disabled={nameDraft.trim() === (profile.displayName || '').trim()}>Save</Button>
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs text-slate-500">{stats.tier}</p>
-                  {stats.tier !== UserTier.SCHOLAR && (
-                    <Button size="xs" variant="primary" onClick={() => { setShowProfileMenu(false); setShowMembershipModal(true); }}>Upgrade</Button>
-                  )}
+                  <p className="text-xs text-slate-500">{supporter && entitlement?.supporterUntil ? `Supporter until ${new Date(entitlement.supporterUntil).toLocaleDateString()}` : 'Free reader'}</p>
+                  <Button size="xs" variant="primary" onClick={() => { setShowProfileMenu(false); openSupport(); }}>{supporter ? 'Extend' : 'Support'}</Button>
                 </div>
               </form>
               {authConfigured && (
@@ -2286,7 +2287,7 @@ const App: React.FC = () => {
                 )}
                 <button onClick={() => { setShowProfileMenu(false); setShowMissionModal(true); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><Heart size={12} className="text-red-500" /> Our mission</button>
                 <button onClick={() => { setShowProfileMenu(false); setShowFounderModal(true); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><User size={12} /> The founder</button>
-                {!isPaid && <button onClick={() => { setShowProfileMenu(false); setShowUrgentModal(true); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><Heart size={12} className="text-red-500 fill-red-500" /> Support</button>}
+                {!isPaid && <button onClick={() => { setShowProfileMenu(false); openSupport(); }} className="rounded-lg border-2 border-black px-2 py-1.5 hover:bg-slate-100 flex items-center gap-1"><Heart size={12} className="text-red-500 fill-red-500" /> Support</button>}
               </div>
             </Popover>
           </div>
@@ -2348,6 +2349,13 @@ const App: React.FC = () => {
         error={chapterTextError}
         stats={storeStats}
       />
+      {sponsorship && sponsorship.names.length > 0 && (
+        <div className="container mx-auto max-w-[1440px] px-4 md:px-8 pt-3 print:hidden">
+          <Pill tone="amber" className="border-2 border-black shadow-[2px_2px_0_0_#000] normal-case" title={sponsorship.entries.map(e => e.message).filter(Boolean).join(' · ') || undefined}>
+            <Heart size={11} className="fill-red-500 text-red-500" /> Pictures for this chapter made possible by {formatNames(sponsorship.names)}
+          </Pill>
+        </div>
+      )}
 
       {/* --- MAIN CONTENT --- */}
       <main className={cx('container mx-auto p-4 md:p-8 min-h-[60vh]', readerMode === 'comic' ? 'max-w-7xl' : 'max-w-[1440px]')}>
