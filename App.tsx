@@ -51,8 +51,8 @@ import { generateCircleCode, decodeInvite, inviteUrl, takeInviteFromUrl } from '
 import { markChapterKey, migrateMarkStores, getVerseNotes } from './services/highlights';
 import { translationLanguage, TranslationMeta } from './services/types';
 import { AuthProvider, useAuth } from './components/AuthProvider';
-import { AuthModal } from './components/AuthModal';
-import { signOutUser, providerLabel } from './services/authService';
+import { AuthModal, type AuthReason } from './components/AuthModal';
+import { signOutUser, providerLabel, currentUser } from './services/authService';
 import { ensureUserDocument, loadUserData, saveUserProfile, saveUserStats, mergeStats } from './services/userStore';
 import * as circleStore from './services/circleStore';
 import type { CircleActor, CircleFocus } from './services/circleStore';
@@ -110,6 +110,30 @@ function safeWrite(key: string, value: unknown): void {
 const HERO_LIMIT = 3;
 
 const ArrowRightIcon = () => <span aria-hidden="true">→</span>;
+
+/** Tiny "sign in" marker on a locked control. Tapping the control opens the sign-in dialog. */
+const UnlockPill: React.FC<{ compact?: boolean }> = ({ compact }) => (
+  <span
+    aria-label="Sign in to unlock"
+    className={cx(
+      'ml-1 inline-flex items-center gap-0.5 rounded-full border-2 border-black bg-amber-300 text-black font-black uppercase tracking-wider leading-none shadow-[1px_1px_0_0_#000] normal-case',
+      compact ? 'px-1 py-[2px] text-[8px]' : 'px-1.5 py-[3px] text-[9px]',
+    )}
+  >
+    <Lock size={compact ? 8 : 9} strokeWidth={3} />
+    {!compact && <span className="hidden lg:inline">Sign in</span>}
+  </span>
+);
+
+/** What each locked feature says when it asks for an account. */
+const UNLOCK: Record<'study' | 'comic' | 'quiz' | 'ai' | 'cast' | 'circle', AuthReason> = {
+  study: { title: 'Unlock study tools', hint: 'Study mode is free with an account: verse-by-verse notes, context and highlights that follow you to every device.' },
+  comic: { title: 'Unlock the comic', hint: 'The illustrated chapter is free with an account. Sign in and it opens right here.' },
+  quiz: { title: 'Unlock quizzes', hint: 'Quizzes earn points and keep your streak. Sign in free and this quiz opens right away.' },
+  ai: { title: 'Sign in to generate', hint: 'Generating a new comic costs real money, so it is tied to an account. Sign in free to continue.' },
+  cast: { title: 'Unlock your cast', hint: 'Characters you invent are saved to your account so they can appear in every comic you generate.' },
+  circle: { title: 'Sign in to read together', hint: 'Circles live online so reflections sync between members. Sign in free to start or join one.' },
+};
 
 const FALLBACK_VERSION_PRIORITY: BibleVersion[] = [
   BibleVersion.NLT,
@@ -221,6 +245,36 @@ const App: React.FC = () => {
   const [nameDraft, setNameDraft] = useState('');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const { user: authUser, configured: authConfigured, loading: authLoading } = useAuth();
+
+  // --- SIGN-IN GATE ---------------------------------------------------------
+  // Reading is always open. Study, Comic, quizzes, AI generation, the cast and
+  // circles need a (free) account, but only once sign-in is actually possible
+  // on this build: with Firebase unconfigured (local dev) nothing is locked.
+  const gated = authConfigured && !authLoading && !authUser;
+  const [authReason, setAuthReason] = useState<AuthReason | null>(null);
+  const afterSignIn = useRef<(() => void) | null>(null);
+  /** True when the reader may proceed. Otherwise opens the sign-in dialog and remembers `action` to run once they are in. */
+  const requireSignIn = (reason: AuthReason, action?: () => void): boolean => {
+    if (!gated) return true;
+    afterSignIn.current = action ?? null;
+    setAuthReason(reason);
+    setShowProfileMenu(false);
+    setShowAuthModal(true);
+    return false;
+  };
+  useEffect(() => {
+    if (!authUser) return;
+    const run = afterSignIn.current;
+    afterSignIn.current = null;
+    setAuthReason(null);
+    if (run) run();
+  }, [authUser]);
+  const openCast = () => { if (requireSignIn(UNLOCK.cast, () => setCommunityDrawer('forge'))) setCommunityDrawer('forge'); };
+  // A device that last used Study or Comic while signed in falls back to Read when signed out.
+  useEffect(() => {
+    if (gated && readerMode !== 'read') { setReaderMode('read'); safeWrite('scriptureComix_readerMode', 'read'); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gated]);
   // Cloud sync only starts once this device's data has been merged with the account's.
   const [cloudReadyFor, setCloudReadyFor] = useState<string | null>(null);
   // Illustrated edition: one picture per scene, generated once and shipped
@@ -289,6 +343,7 @@ const App: React.FC = () => {
     );
   };
   const switchMode = (m: 'read' | 'study' | 'comic', scrollTop: boolean = true) => {
+    if (m !== 'read' && !requireSignIn(UNLOCK[m], () => switchMode(m, scrollTop))) return;
     setReaderMode(m);
     safeWrite('scriptureComix_readerMode', m);
     if (scrollTop) window.scrollTo({ top: 0, behavior: 'auto' });
@@ -1098,6 +1153,7 @@ const App: React.FC = () => {
   };
 
   const handleCreateGroup = (name: string, focus: string) => {
+    if (!requireSignIn(UNLOCK.circle, () => handleCreateGroup(name, focus))) return;
     if (circleActor) {
       circleStore.createCircle(circleActor, name, focus, currentCircleFocus())
         .then(id => { setSelectedGroupId(id); toast({ title: `${name} is ready`, description: 'Copy the invite so others can read along. It syncs for everyone who signs in.' }); })
@@ -1181,7 +1237,10 @@ const App: React.FC = () => {
     return true;
   };
 
-  const handleJoinGroup = (invite: string) => joinFromInvite(invite);
+  const handleJoinGroup = (invite: string) => {
+    if (!requireSignIn(UNLOCK.circle, () => { void joinFromInvite(invite); })) return;
+    return joinFromInvite(invite);
+  };
 
   const handleInviteGroup = async (groupId: string) => {
     const group = groups.find(g => g.id === groupId);
@@ -1470,9 +1529,10 @@ const App: React.FC = () => {
   // --- HANDLERS ---
   const handleGenerate = async (e?: React.FormEvent, override?: {book: string, chapter: number}) => {
     if (e) e.preventDefault();
+    if (!requireSignIn(UNLOCK.ai, () => { void handleGenerate(undefined, override); })) return;
     const bookToUse = override?.book || selectedBook;
     const chapterToUse = override?.chapter || selectedChapter;
-    
+
     if (!checkFeatureLock('book', bookToUse)) return;
 
     switchMode('comic');
@@ -1678,6 +1738,7 @@ const App: React.FC = () => {
   // Quizzes come from the permanent quiz bank: built from the chapter text
   // (instant, offline) and enriched with stored comprehension quizzes.
   const handleQuiz = async (fresh: boolean = false) => {
+    if (!requireSignIn(UNLOCK.quiz, () => { void handleQuiz(fresh); })) return;
     if (quizData && !fresh) { setShowQuiz(true); return; }
     if (!chapterText || chapterText.length === 0) {
       setError('Load a chapter first, then test your knowledge.');
@@ -2001,7 +2062,15 @@ const App: React.FC = () => {
       {showUrgentModal && <EscapeLayer onClose={() => setShowUrgentModal(false)}><UrgentDonationModal onClose={() => setShowUrgentModal(false)} onDonate={handleDonation} /></EscapeLayer>}
       {showMembershipModal && <EscapeLayer onClose={() => setShowMembershipModal(false)}><MembershipModal currentTier={stats.tier} onClose={() => setShowMembershipModal(false)} onUpgrade={handleUpgrade} /></EscapeLayer>}
       {showMissionModal && <EscapeLayer onClose={() => setShowMissionModal(false)}><MissionModal onClose={() => setShowMissionModal(false)} /></EscapeLayer>}
-      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <AuthModal
+        open={showAuthModal}
+        reason={authReason}
+        onClose={() => {
+          setShowAuthModal(false);
+          // Closed without signing in: forget the action that was waiting on it.
+          if (!currentUser()) { afterSignIn.current = null; setAuthReason(null); }
+        }}
+      />
       {showFounderModal && <EscapeLayer onClose={() => setShowFounderModal(false)}><FounderStoryModal onClose={() => setShowFounderModal(false)} onDonate={() => { setShowFounderModal(false); setShowUrgentModal(true); }} /></EscapeLayer>}
       {showCharacterLibrary && <EscapeLayer onClose={() => setShowCharacterLibrary(false)}><CharacterLibrary onClose={() => setShowCharacterLibrary(false)} tier={stats.tier} onUpgrade={() => setShowMembershipModal(true)} currentBook={selectedBook} /></EscapeLayer>}
       {showOfflineManager && (
@@ -2082,8 +2151,8 @@ const App: React.FC = () => {
               onChange={(m) => switchMode(m)}
               items={[
                 { value: 'read', label: 'Read', icon: <BookOpen size={14} />, title: 'Read the chapter like a book', hideLabelBelow: 'md' },
-                { value: 'study', label: 'Study', icon: <Brain size={14} />, title: 'Verse by verse, with notes and context', hideLabelBelow: 'md' },
-                { value: 'comic', label: 'Comic', icon: <Palette size={14} />, title: 'The illustrated chapter', hideLabelBelow: 'md' },
+                { value: 'study', label: 'Study', icon: <Brain size={14} />, title: gated ? 'Sign in to unlock Study' : 'Verse by verse, with notes and context', hideLabelBelow: 'md', badge: gated ? <UnlockPill /> : undefined },
+                { value: 'comic', label: 'Comic', icon: <Palette size={14} />, title: gated ? 'Sign in to unlock the comic' : 'The illustrated chapter', hideLabelBelow: 'md', badge: gated ? <UnlockPill /> : undefined },
               ]}
             />
             <Button
@@ -2091,10 +2160,10 @@ const App: React.FC = () => {
               size="sm"
               onClick={() => handleQuiz()}
               disabled={!chapterText || chapterText.length === 0 || isChapterTextLoading}
-              title="Test yourself on this chapter"
+              title={gated ? 'Sign in to unlock quizzes' : 'Test yourself on this chapter'}
               className="py-2"
             >
-              <Brain size={14} /> <span className="hidden md:inline">Quiz</span>
+              <Brain size={14} /> <span className="hidden md:inline">Quiz</span>{gated && <UnlockPill compact />}
             </Button>
             </div>
 
@@ -2138,7 +2207,7 @@ const App: React.FC = () => {
                 </ul>
               )}
               <MenuItem icon={<Compass size={16} />} title="Reading paths" hint={activeJourney ? `${activeJourney.title} · ${activeJourneyPercent}%` : 'Short chapter sequences that build understanding'} onClick={() => { setShowCommunityMenu(false); setCommunityDrawer('journeys'); }} />
-              <MenuItem icon={<Sparkles size={16} />} title="Your cast" hint={customHeroes.length ? `${customHeroes.length} character${customHeroes.length === 1 ? '' : 's'} for your comics` : 'Characters who appear in comics you generate'} onClick={() => { setShowCommunityMenu(false); setCommunityDrawer('forge'); }} />
+              <MenuItem icon={<Sparkles size={16} />} title="Your cast" hint={customHeroes.length ? `${customHeroes.length} character${customHeroes.length === 1 ? '' : 's'} for your comics` : 'Characters who appear in comics you generate'} onClick={() => { setShowCommunityMenu(false); openCast(); }} />
             </Popover>
 
             {/* You */}
@@ -2248,8 +2317,8 @@ const App: React.FC = () => {
             className="flex-1"
             items={[
               { value: 'read', label: 'Read', icon: <BookOpen size={14} /> },
-              { value: 'study', label: 'Study', icon: <Brain size={14} /> },
-              { value: 'comic', label: 'Comic', icon: <Palette size={14} /> },
+              { value: 'study', label: 'Study', icon: <Brain size={14} />, badge: gated ? <UnlockPill compact /> : undefined },
+              { value: 'comic', label: 'Comic', icon: <Palette size={14} />, badge: gated ? <UnlockPill compact /> : undefined },
             ]}
           />
           <IconButton
@@ -2302,7 +2371,7 @@ const App: React.FC = () => {
               options={artStyleOptions}
               buttonClassName="border-purple-500 text-purple-900 bg-purple-50 hover:bg-purple-100"
             />
-            <Button size="sm" variant="secondary" onClick={() => setCommunityDrawer('forge')}>
+            <Button size="sm" variant="secondary" onClick={openCast}>
               <Users size={14} /> Cast{activeHeroIds.length ? ` · ${activeHeroIds.length}` : ''}
             </Button>
             <Button size="sm" variant="danger" onClick={(e) => handleGenerate(e)} disabled={isGeneratingScript} title="An AI-written script with one panel per verse. Uses AI credits.">

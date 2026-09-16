@@ -35,7 +35,10 @@ const Divider: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 );
 
-export const AuthModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
+/** Why the dialog opened, when a locked feature opened it: shown as the heading and a short line under it. */
+export interface AuthReason { title: string; hint: string }
+
+export const AuthModal: React.FC<{ open: boolean; onClose: () => void; reason?: AuthReason | null }> = ({ open, onClose, reason }) => {
   const toast = useToast();
   const [method, setMethod] = useState<Method>('email');
   const [busy, setBusy] = useState(false);
@@ -153,8 +156,11 @@ export const AuthModal: React.FC<{ open: boolean; onClose: () => void }> = ({ op
   const emailTitle = emailMode === 'signup' ? 'Create your account' : emailMode === 'reset' ? 'Reset your password' : 'Sign in with email';
 
   return (
-    <Dialog open={open} onClose={onClose} title="Sign in" eyebrow="Keep your progress everywhere" icon={<LogIn size={22} />} size="sm" tone="purple">
+    <Dialog open={open} onClose={onClose} title={reason?.title ?? 'Sign in'} eyebrow={reason ? 'Free account · takes a minute' : 'Keep your progress everywhere'} icon={<LogIn size={22} />} size="sm" tone="purple">
       <div className="space-y-4">
+        {reason && (
+          <p className="rounded-xl border-2 border-black bg-amber-100 px-3 py-2 text-sm font-semibold text-slate-900 shadow-[2px_2px_0_0_#000]">{reason.hint}</p>
+        )}
         <Button variant="secondary" block onClick={handleGoogle} disabled={busy} className="normal-case tracking-normal">
           <GoogleMark /> Continue with Google
         </Button>

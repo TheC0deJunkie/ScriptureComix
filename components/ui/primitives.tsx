@@ -163,7 +163,11 @@ IconButton.displayName = 'IconButton';
 /* ------------------------------------------------------------------ */
 /* Segmented control                                                    */
 /* ------------------------------------------------------------------ */
-export interface SegmentItem<T extends string> { value: T; label: React.ReactNode; icon?: React.ReactNode; title?: string; hideLabelBelow?: 'md' | 'lg' }
+export interface SegmentItem<T extends string> {
+  value: T; label: React.ReactNode; icon?: React.ReactNode; title?: string; hideLabelBelow?: 'md' | 'lg';
+  /** Small marker after the label, e.g. a "sign in" pill on a locked mode. */
+  badge?: React.ReactNode;
+}
 export function Segmented<T extends string>({ value, onChange, items, size = 'md', className, ariaLabel }: {
   value: T; onChange: (v: T) => void; items: SegmentItem<T>[]; size?: 'sm' | 'md'; className?: string; ariaLabel: string;
 }) {
@@ -187,6 +191,7 @@ export function Segmented<T extends string>({ value, onChange, items, size = 'md
           >
             {it.icon}
             <span className={cx(it.hideLabelBelow === 'md' && 'hidden md:inline', it.hideLabelBelow === 'lg' && 'hidden lg:inline')}>{it.label}</span>
+            {it.badge}
           </button>
         );
       })}
