@@ -15,6 +15,11 @@ SITE="${APP_URL:-https://scripture-comix.vercel.app}"
 
 SA_JSON="${1:-}"
 ENV_FILE="${2:-}"
+# No second argument: fall back to the sibling project's env file if it is there
+# (the user agreed to borrow its Yoco key for the first run).
+if [ -z "$ENV_FILE" ] && [ -z "${YOCO_SECRET_KEY:-}" ] && [ -f "../whatsapp-book/.env.local" ]; then
+  ENV_FILE="../whatsapp-book/.env.local"
+fi
 if [ -z "$SA_JSON" ] || [ ! -f "$SA_JSON" ]; then
   echo "First argument must be the Firebase service-account JSON file (got: '${SA_JSON}')." >&2
   echo "Firebase console → Project settings → Service accounts → Generate new private key." >&2
