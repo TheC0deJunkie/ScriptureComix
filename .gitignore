@@ -40,3 +40,6 @@ public/data/catholic/nabre/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# Staged copy of the copyrighted translations for `npm run publish:texts` (Firebase Hosting)
+.texts-hosting/

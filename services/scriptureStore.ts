@@ -169,12 +169,38 @@ const idbClear = async (): Promise<void> => {
 // ---------------------------------------------------------------------------
 // Network tier
 // ---------------------------------------------------------------------------
-const fetchBundled = async (key: string): Promise<Record<string, string>> => {
-  const res = await fetch(`/data/${key}.json`);
-  if (!res.ok) throw new Error(`Failed to load /data/${key}.json: ${res.status}`);
+/**
+ * Origin that serves the books that are NOT shipped inside the app bundle.
+ * The copyrighted translations (NLT, NIV, NKJV, NASB, NABRE) are kept out of
+ * git, so a git-based deploy (Vercel) has no copy of them; they are published
+ * separately to Firebase Hosting with `npm run publish:texts`. The app always
+ * tries its own /data first and only falls back here. Set
+ * VITE_TEXT_HOST_BASE="" to disable the fallback.
+ */
+const envBase = (import.meta as any).env?.VITE_TEXT_HOST_BASE;
+export const REMOTE_TEXT_BASE: string = (
+  typeof envBase === 'string' ? envBase : 'https://scripturecomix.web.app'
+).replace(/\/+$/, '');
+
+const fetchBookJson = async (url: string): Promise<Record<string, string>> => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
   const json = (await res.json()) as Record<string, string>;
-  if (!json || typeof json !== 'object') throw new Error(`Malformed book file: ${key}`);
+  if (!json || typeof json !== 'object') throw new Error(`Malformed book file: ${url}`);
   return json;
+};
+
+const fetchBundled = async (key: string): Promise<Record<string, string>> => {
+  try {
+    return await fetchBookJson(`/data/${key}.json`);
+  } catch (localErr) {
+    if (!REMOTE_TEXT_BASE) throw localErr;
+    try {
+      return await fetchBookJson(`${REMOTE_TEXT_BASE}/data/${key}.json`);
+    } catch (remoteErr) {
+      throw new Error(`${(localErr as Error).message}; ${(remoteErr as Error).message}`);
+    }
+  }
 };
 
 // ---------------------------------------------------------------------------

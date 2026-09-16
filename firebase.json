@@ -1,6 +1,6 @@
 {
   "auth": {
-    "authorizedDomains": ["localhost", "127.0.0.1", "scripturecomix.firebaseapp.com", "scripturecomix.web.app"],
+    "authorizedDomains": ["localhost", "127.0.0.1", "scripturecomix.firebaseapp.com", "scripturecomix.web.app", "scripture-comix.vercel.app"],
     "providers": {
       "emailPassword": true,
       "googleSignIn": {
@@ -12,6 +12,19 @@
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "hosting": {
+    "public": ".texts-hosting",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      {
+        "source": "**/*.json",
+        "headers": [
+          { "key": "Access-Control-Allow-Origin", "value": "*" },
+          { "key": "Cache-Control", "value": "public, max-age=86400" }
+        ]
+      }
+    ]
   },
   "emulators": {
     "auth": { "port": 9099 },

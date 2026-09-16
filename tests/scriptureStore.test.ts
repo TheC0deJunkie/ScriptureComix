@@ -80,6 +80,27 @@ describe('scriptureStore', () => {
     await expect(getBook('protestant', 'kjv', 'nope')).rejects.toThrow(/404/);
   });
 
+  it('falls back to the remote text host when a book is not in the bundle', async () => {
+    const NLT = { '1:1': 'In the beginning God created the heavens and the earth.' };
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url === 'https://scripturecomix.web.app/data/protestant/nlt/genesis.json') {
+        return { ok: true, status: 200, json: async () => ({ ...NLT }) } as any;
+      }
+      return { ok: false, status: 404, json: async () => ({}) } as any;
+    });
+    const book = await getBook('protestant', 'nlt', 'genesis');
+    expect(book.verses).toEqual(NLT);
+    expect(fetchMock.mock.calls.map((c) => c[0])).toEqual([
+      '/data/protestant/nlt/genesis.json',
+      'https://scripturecomix.web.app/data/protestant/nlt/genesis.json',
+    ]);
+    // stored permanently: a fresh module instance reads it back without the network
+    fetchMock.mockClear();
+    __resetScriptureStoreForTests();
+    expect((await peekBook('protestant', 'nlt', 'genesis'))?.verses).toEqual(NLT);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('patchBook replaces placeholders, keeps bundled text, and records provenance', async () => {
     const before = await getBook('ethiopian', 'kjv', '1-enoch');
     expect(isPlaceholderText(before.verses['1:1'])).toBe(true);

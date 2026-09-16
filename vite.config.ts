@@ -68,6 +68,19 @@ export default defineConfig(({ mode }) => {
                 },
               },
             },
+            {
+              // Copyrighted translations are not in the bundle; scriptureStore
+              // falls back to Firebase Hosting for them (see REMOTE_TEXT_BASE)
+              urlPattern: /^https:\/\/scripturecomix\.web\.app\/data\/.*/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'scripture-data-remote-v1',
+                cacheableResponse: { statuses: [0, 200] },
+                expiration: {
+                  maxEntries: 400, // 5 translations x <=73 books + headroom
+                },
+              },
+            },
           ],
         },
       }),
