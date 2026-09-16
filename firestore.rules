@@ -80,6 +80,13 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/circles/$(circleId)).data;
     }
 
+    // The circle as it will be once this batch commits. Creating a circle
+    // writes its first session and a system reflection in the same batch, and
+    // get() cannot see a document that is being created alongside.
+    function circleAfter(circleId) {
+      return getAfter(/databases/$(database)/documents/circles/$(circleId)).data;
+    }
+
     function changedKeys() {
       return request.resource.data.diff(resource.data).affectedKeys();
     }
@@ -158,7 +165,7 @@ service cloud.firestore {
 
       match /sessions/{sessionId} {
         allow read: if memberOf(circle(circleId));
-        allow create: if memberOf(circle(circleId))
+        allow create: if memberOf(circleAfter(circleId))
           && request.resource.data.keys().hasOnly([
             'number', 'title', 'status', 'startedAt', 'startedBy', 'startedByUid',
             'endedAt', 'endedBy', 'endedByUid', 'passages', 'summary', 'takeaways', 'reflectionCount'
@@ -183,8 +190,8 @@ service cloud.firestore {
         match /reflections/{reflectionId} {
           allow read: if memberOf(circle(circleId));
           // Writing needs an open, active circle; system lines are only written alongside member actions.
-          allow create: if memberOf(circle(circleId))
-            && circle(circleId).status == 'active'
+          allow create: if memberOf(circleAfter(circleId))
+            && circleAfter(circleId).status == 'active'
             && request.resource.data.keys().hasOnly(['authorUid', 'author', 'text', 'ref', 'createdAt'])
             && (request.resource.data.authorUid == uid() || request.resource.data.authorUid == 'system')
             && isString(request.resource.data.author, 80)
