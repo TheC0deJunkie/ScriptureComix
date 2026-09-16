@@ -15,6 +15,11 @@ SITE="${APP_URL:-https://scripture-comix.vercel.app}"
 
 SA_JSON="${1:-}"
 ENV_FILE="${2:-}"
+# No first argument: use the newest key Firebase downloaded for this project.
+if [ -z "$SA_JSON" ]; then
+  SA_JSON=$(ls -t "$HOME/Downloads"/scripturecomix-firebase-adminsdk-*.json 2>/dev/null | head -1 || true)
+  [ -n "$SA_JSON" ] && echo "Using service account: $SA_JSON"
+fi
 # No second argument: fall back to the sibling project's env file if it is there
 # (the user agreed to borrow its Yoco key for the first run).
 if [ -z "$ENV_FILE" ] && [ -z "${YOCO_SECRET_KEY:-}" ] && [ -f "../whatsapp-book/.env.local" ]; then
