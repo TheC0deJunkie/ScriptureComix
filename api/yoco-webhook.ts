@@ -7,9 +7,9 @@
  * mode mismatch is refused. Everything below is idempotent: Yoco retries any
  * non-2xx and may redeliver a success.
  */
-import { passDaysFor, sponsorshipKey, type ChapterRef, type Sku } from '../shared/products';
-import { adminReady, db, FieldValue } from './_lib/firebaseAdmin';
-import { coversAmount, paymentsLive, verifyEvent } from './_lib/yoco';
+import { passDaysFor, sponsorshipKey, type ChapterRef, type Sku } from '../shared/products.js';
+import { adminReady, db, FieldValue } from './_lib/firebaseAdmin.js';
+import { coversAmount, paymentsLive, verifyEvent } from './_lib/yoco.js';
 
 interface Purchase {
   reference: string;

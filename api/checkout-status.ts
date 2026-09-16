@@ -5,8 +5,8 @@
  * returning. The reference is unguessable and this returns nothing about the
  * buyer, only whether the record has settled.
  */
-import { adminReady, db } from './_lib/firebaseAdmin';
-import { REFERENCE_RE } from './_lib/yoco';
+import { adminReady, db } from './_lib/firebaseAdmin.js';
+import { REFERENCE_RE } from './_lib/yoco.js';
 
 export async function GET(req: Request): Promise<Response> {
   const ref = new URL(req.url).searchParams.get('ref') || '';

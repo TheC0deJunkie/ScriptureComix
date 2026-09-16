@@ -10,7 +10,7 @@
  * be bought and nothing can be granted.
  */
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
-import { CURRENCY } from '../../shared/products';
+import { CURRENCY } from '../../shared/products.js';
 
 const API = 'https://payments.yoco.com/api';
 
